@@ -1,6 +1,6 @@
 # StudentHub — Premier Student & Aspirant Platform
 
-![CI Pipeline](https://github.com/your-org/studenthub/actions/workflows/ci.yml/badge.svg)
+![CI Pipeline](https://github.com/Mukul9913/studenthub/actions/workflows/ci.yml/badge.svg)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-purple.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-9.x-orange.svg)](https://pnpm.io/)
@@ -79,7 +79,7 @@ studenthub/
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/your-org/studenthub.git
+   git clone https://github.com/Mukul9913/studenthub.git
    cd studenthub
    ```
 
