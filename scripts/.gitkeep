@@ -1,0 +1,4 @@
+# Utility scripts
+#
+# Add operational scripts (seed helpers, codegen, migrations wrappers)
+# here. Prefer TypeScript (tsx) or shell scripts committed with the repo.

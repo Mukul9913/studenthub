@@ -1,0 +1,4 @@
+/**
+ * Static assets (images, icons, fonts).
+ * Import from this folder via relative paths or Vite URL imports.
+ */

@@ -1,0 +1,89 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, master, dev]
+  pull_request:
+    branches: [main, master, dev]
+
+# Cancel redundant in-progress CI runs for the same branch or pull request
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Monorepo Codebase
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check Code Formatting
+        run: pnpm run format:check
+
+      - name: Run ESLint across Workspaces
+        run: pnpm run lint
+
+      - name: Run TypeScript Type Check across Workspaces
+        run: pnpm run typecheck
+
+      - name: Build All Monorepo Workspaces
+        run: pnpm run build
+        env:
+          NODE_ENV: production
+          CLIENT_URL: http://localhost:5173
+          MONGODB_URI: mongodb://127.0.0.1:27017/studenthub-ci
+          JWT_ACCESS_SECRET: ci-access-secret-key-must-be-32-bytes-long
+          JWT_REFRESH_SECRET: ci-refresh-secret-key-must-be-32-bytes-long
+          VITE_API_URL: http://localhost:5000/api
+
+  test:
+    name: Run Unit & Integration Tests
+    needs: validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run API Unit & Integration Tests
+        run: pnpm --filter @studenthub/api test
+        env:
+          NODE_ENV: test
+          MONGODB_URI: mongodb://127.0.0.1:27017/studenthub-test
+          JWT_ACCESS_SECRET: test-access-secret-key-must-be-32-bytes-long
+          JWT_REFRESH_SECRET: test-refresh-secret-key-must-be-32-bytes-long
+          CLIENT_URL: http://localhost:5173

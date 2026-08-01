@@ -1,0 +1,4 @@
+# Infrastructure
+#
+# Place deployment manifests, Terraform/Pulumi, Docker Compose,
+# and environment-specific configs here as the platform grows.
