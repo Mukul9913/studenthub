@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState, useEffect } from "react";
@@ -57,12 +58,15 @@ export function AccommodationsPage() {
   const [queryInput, setQueryInput] = useState(initialQ);
   const [debouncedQuery, setDebouncedQuery] = useState(initialQ);
   const [selectedArea, setSelectedArea] = useState<string>(urlArea ?? "all");
+  const [selectedCoaching, setSelectedCoaching] = useState<string>("all");
+  const [selectedCollege, setSelectedCollege] = useState<string>("all");
+  const [radiusKm, setRadiusKm] = useState<string>("all");
   const [propertyType, setPropertyType] = useState<PropertyType | "all">("all");
   const [gender, setGender] = useState<GenderPreference | "all">("all");
   const [minRent, setMinRent] = useState<string>("");
   const [maxRent, setMaxRent] = useState<string>("");
   const [amenities, setAmenities] = useState<Amenity[]>([]);
-  const [sort, setSort] = useState<SortValue>(urlSort ?? "recommended");
+  const [sort, setSort] = useState<SortValue | "nearest">(urlSort ?? "recommended");
   const [page, setPage] = useState<number>(urlPage ? Number(urlPage) : 1);
 
   // Debounce search query input (300ms)
@@ -106,7 +110,7 @@ export function AccommodationsPage() {
       minRent: Number(minRent) || 0,
       maxRent: Number(maxRent) || 0,
       amenities,
-      sort,
+      sort: sort as any,
       page,
       limit: 9,
     }),
@@ -162,6 +166,72 @@ export function AccommodationsPage() {
           </SelectContent>
         </Select>
       </div>
+      <div>
+        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Coaching Institute
+        </Label>
+        <Select value={selectedCoaching} onValueChange={setSelectedCoaching}>
+          <SelectTrigger className="mt-2 text-xs">
+            <SelectValue placeholder="All Coaching Institutes" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Coaching Institutes</SelectItem>
+            {[
+              "Drishti IAS",
+              "Physics Wallah",
+              "Ribosome",
+              "Allen",
+              "Unacademy",
+              "Career Launcher",
+              "Aakash",
+              "CatalyseR",
+            ].map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Nearby College
+        </Label>
+        <Select value={selectedCollege} onValueChange={setSelectedCollege}>
+          <SelectTrigger className="mt-2 text-xs">
+            <SelectValue placeholder="All Colleges" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Colleges</SelectItem>
+            {["DAVV", "SGSITS", "IIT Indore", "Medi-Caps", "IPS Academy", "Acropolis"].map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Distance Radius
+        </Label>
+        <Select value={radiusKm} onValueChange={setRadiusKm}>
+          <SelectTrigger className="mt-2 text-xs">
+            <SelectValue placeholder="Any distance" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Any distance</SelectItem>
+            <SelectItem value="1">Within 1 KM</SelectItem>
+            <SelectItem value="2">Within 2 KM</SelectItem>
+            <SelectItem value="3">Within 3 KM</SelectItem>
+            <SelectItem value="5">Within 5 KM</SelectItem>
+            <SelectItem value="10">Within 10 KM</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div>
         <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Property type
@@ -293,9 +363,10 @@ export function AccommodationsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="recommended">Recommended</SelectItem>
+                  <SelectItem value="nearest">Nearest First</SelectItem>
                   <SelectItem value="rent-asc">Rent: Low to High</SelectItem>
                   <SelectItem value="rent-desc">Rent: High to Low</SelectItem>
-                  <SelectItem value="recent">Recently added</SelectItem>
+                  <SelectItem value="recent">Recently Added</SelectItem>
                 </SelectContent>
               </Select>
             </div>

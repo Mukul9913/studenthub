@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import { INDORE_AREAS } from "../../features/accommodation/mock-data/areas";
+import { DraggableMapPicker } from "../../components/maps/DraggableMapPicker";
 import { createAccommodation } from "../../features/accommodation/services";
 import {
   PROPERTY_TYPES,
@@ -74,6 +75,8 @@ interface FormState {
   area: string;
   address: string;
   zipCode: string;
+  latitude?: string;
+  longitude?: string;
   nearbyCollege: string;
   nearbyCompany: string;
   rent: string;
@@ -94,6 +97,8 @@ const EMPTY: FormState = {
   area: "",
   address: "",
   zipCode: "",
+  latitude: "22.7196",
+  longitude: "75.8577",
   nearbyCollege: "",
   nearbyCompany: "",
   rent: "",
@@ -358,64 +363,82 @@ export function CreateAccommodationPage() {
 
         {/* Step 1: Location */}
         {step === 1 && (
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <Label>Area</Label>
-              <Select value={form.area} onValueChange={(v) => set("area", v)}>
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue placeholder="Select area" />
-                </SelectTrigger>
-                <SelectContent>
-                  {INDORE_AREAS.map((a) => (
-                    <SelectItem key={a.slug} value={a.name}>
-                      {a.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.area && <p className="mt-1 text-xs text-destructive">{errors.area}</p>}
+              <Label className="mb-1.5 block">Pin Exact Property Location & Address</Label>
+              <DraggableMapPicker
+                initialAddress={form.address}
+                initialCity="Indore"
+                onLocationChange={(loc) => {
+                  if (loc.address) set("address", loc.address);
+                  if (loc.pincode) set("zipCode", loc.pincode);
+                  if (loc.latitude) set("latitude", loc.latitude as unknown as string);
+                  if (loc.longitude) set("longitude", loc.longitude as unknown as string);
+                }}
+              />
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Area</Label>
+                <Select value={form.area} onValueChange={(v) => set("area", v)}>
+                  <SelectTrigger className="mt-1.5">
+                    <SelectValue placeholder="Select area" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INDORE_AREAS.map((a) => (
+                      <SelectItem key={a.slug} value={a.name}>
+                        {a.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.area && <p className="mt-1 text-xs text-destructive">{errors.area}</p>}
+              </div>
+
+              <div>
+                <Label htmlFor="zipCode">Pincode</Label>
+                <Input
+                  id="zipCode"
+                  className="mt-1.5"
+                  value={form.zipCode}
+                  onChange={(e) => set("zipCode", e.target.value)}
+                  placeholder="452001"
+                />
+              </div>
+            </div>
+
             <div>
-              <Label htmlFor="address">Full address</Label>
+              <Label htmlFor="address">Full Street Address</Label>
               <Input
                 id="address"
                 className="mt-1.5"
                 value={form.address}
                 onChange={(e) => set("address", e.target.value)}
-                placeholder="Plot, street, landmark"
+                placeholder="House No, Street, Landmark"
               />
               {errors.address && <p className="mt-1 text-xs text-destructive">{errors.address}</p>}
             </div>
-            <div>
-              <Label htmlFor="zipCode">Pin / Zip code</Label>
-              <Input
-                id="zipCode"
-                className="mt-1.5"
-                value={form.zipCode}
-                onChange={(e) => set("zipCode", e.target.value)}
-                placeholder="452001"
-              />
-              {errors.zipCode && <p className="mt-1 text-xs text-destructive">{errors.zipCode}</p>}
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="nearbyCollege">Nearby college</Label>
+                <Label htmlFor="nearbyCollege">Nearby College</Label>
                 <Input
                   id="nearbyCollege"
                   className="mt-1.5"
                   value={form.nearbyCollege}
                   onChange={(e) => set("nearbyCollege", e.target.value)}
-                  placeholder="e.g. IET DAVV"
+                  placeholder="e.g. DAVV, SGSITS"
                 />
               </div>
               <div>
-                <Label htmlFor="nearbyCompany">Nearby company</Label>
+                <Label htmlFor="nearbyCompany">Nearby Coaching / Landmark</Label>
                 <Input
                   id="nearbyCompany"
                   className="mt-1.5"
                   value={form.nearbyCompany}
                   onChange={(e) => set("nearbyCompany", e.target.value)}
-                  placeholder="e.g. Infosys Indore"
+                  placeholder="e.g. Physics Wallah, Drishti IAS"
                 />
               </div>
             </div>

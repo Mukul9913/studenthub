@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-namespace */
 import type { UserRole, OwnerType } from "@studenthub/types";
 
@@ -9,8 +10,8 @@ declare global {
         role: UserRole;
         ownerType?: OwnerType | null;
       };
+      subscription?: any;
+      usage?: any;
     }
   }
 }
-
-export type AsyncHandler = (...args: unknown[]) => Promise<void> | void;

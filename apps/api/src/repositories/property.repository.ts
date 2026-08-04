@@ -77,7 +77,7 @@ export class PropertyRepository {
     if (filters.status) {
       match.status = filters.status;
     } else {
-      match.status = "published";
+      match.status = { $in: ["APPROVED", "published"] };
     }
     if (filters.city) match["location.city"] = filters.city.toLowerCase();
     if (filters.area) {

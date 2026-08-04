@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Calendar, ExternalLink, ArrowLeft } from "lucide-react";
+import { Calendar, ExternalLink, ArrowLeft, Clock } from "lucide-react";
 
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { Button } from "@/components/ui/button";
@@ -8,19 +8,50 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingState } from "@/components/common/LoadingState";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
-
-import { getMyEnquiries } from "@/features/enquiry/services";
-import { ENQUIRY_STATUS_LABELS, ENQUIRY_STATUS_STYLES } from "@/features/enquiry/types";
+interface UserLeadItem {
+  id: string;
+  targetType: string;
+  status: string;
+  message: string;
+  createdAt: string;
+  preferredDate?: string;
+  preferredTime?: string;
+  targetDetails?: {
+    title?: string;
+    area?: string;
+    image?: string;
+    link?: string;
+  };
+}
 
 export function UserEnquiriesPage() {
   const {
-    data: enquiries,
+    data: leads,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["my-enquiries"],
-    queryFn: getMyEnquiries,
+    queryKey: ["my-leads-and-enquiries"],
+    queryFn: async () => {
+      const token = localStorage.getItem("token") || "";
+      try {
+        const res = await fetch("/api/leads/my", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const json = await res.json();
+        if (json.data && Array.isArray(json.data) && json.data.length > 0) {
+          return json.data;
+        }
+      } catch {
+        // Fallback
+      }
+
+      const res = await fetch("/api/enquiries/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      return json.data || [];
+    },
   });
 
   return (
@@ -40,10 +71,11 @@ export function UserEnquiriesPage() {
               </Button>
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl mt-1">
-              My Enquiries & Requests
+              My Visit Requests & Enquiries
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Track the status of your inquiries for PGs, rooms, and study libraries in Indore.
+              Track responses and scheduled visit times for your property and study library
+              inquiries in Indore.
             </p>
           </div>
         </div>
@@ -58,10 +90,10 @@ export function UserEnquiriesPage() {
             <div className="py-12">
               <ErrorState onRetry={() => refetch()} />
             </div>
-          ) : !enquiries || enquiries.length === 0 ? (
+          ) : !leads || leads.length === 0 ? (
             <EmptyState
-              title="No enquiries submitted yet"
-              description="Browse accommodations or study libraries in Indore and click 'Enquire Now' to get in touch with owners."
+              title="No visit requests submitted yet"
+              description="Browse accommodations or study libraries in Indore and click 'Request Visit' to connect directly with owners."
               action={
                 <div className="flex gap-2">
                   <Button asChild size="sm">
@@ -75,10 +107,9 @@ export function UserEnquiriesPage() {
             />
           ) : (
             <div className="space-y-4">
-              {enquiries.map((item) => {
+              {leads.map((item: UserLeadItem) => {
                 const target = item.targetDetails;
-                const statusStyle = ENQUIRY_STATUS_STYLES[item.status] || "";
-                const statusLabel = ENQUIRY_STATUS_LABELS[item.status] || item.status;
+                const status = item.status;
 
                 return (
                   <div
@@ -103,13 +134,24 @@ export function UserEnquiriesPage() {
                           </Badge>
                           <Badge
                             variant="outline"
-                            className={`text-[11px] font-medium ${statusStyle}`}
+                            className={`text-[11px] font-semibold uppercase ${
+                              status === "CONVERTED"
+                                ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                                : status === "ACCEPTED"
+                                  ? "bg-indigo-100 text-indigo-800 border-indigo-300"
+                                  : status === "VISITED"
+                                    ? "bg-purple-100 text-purple-800 border-purple-300"
+                                    : status === "REJECTED" || status === "CANCELLED"
+                                      ? "bg-red-100 text-red-800 border-red-300"
+                                      : "bg-amber-100 text-amber-800 border-amber-300"
+                            }`}
                           >
-                            {statusLabel}
+                            {status}
                           </Badge>
                         </div>
                         <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
                           <Calendar className="h-3 w-3" />
+                          Submitted{" "}
                           {new Date(item.createdAt).toLocaleDateString("en-IN", {
                             day: "numeric",
                             month: "short",
@@ -122,9 +164,16 @@ export function UserEnquiriesPage() {
                         {target?.title || "Listing Target"}
                       </h3>
 
-                      <p className="text-xs text-muted-foreground">
-                        Area: {target?.area || "Indore"}
-                      </p>
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                        <span>Area: {target?.area || "Indore"}</span>
+                        {item.preferredDate && (
+                          <span className="flex items-center gap-1 text-indigo-600 font-medium">
+                            <Clock className="h-3.5 w-3.5" /> Preferred Visit:{" "}
+                            {new Date(item.preferredDate).toLocaleDateString("en-IN")} (
+                            {item.preferredTime || "Anytime"})
+                          </span>
+                        )}
+                      </div>
 
                       <div className="rounded-lg bg-muted/40 p-2.5 text-xs text-muted-foreground italic border border-border/50">
                         "{item.message}"

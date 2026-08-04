@@ -1,6 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { AuthShell } from "../../components/auth/AuthShell";
 import { Button } from "../../components/ui/button";
@@ -13,25 +12,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
-import { fetchApi, setToken, ApiError } from "../../services/api";
+import { fetchApi, ApiError } from "../../services/api";
 
 import { PUBLIC_ROLE_OPTIONS, OWNER_TYPE_OPTIONS } from "@/features/auth/constants";
 import type { OwnerType } from "@studenthub/types";
 
 const PHONE_REGEX = /^\+?[1-9]\d{1,14}$/;
 
-interface AuthUser {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: "student" | "professional" | "owner" | "admin";
-  ownerType?: OwnerType | null;
-}
-
 export function RegisterPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -85,7 +74,7 @@ export function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetchApi<{ accessToken: string; user: AuthUser }>("/auth/register", {
+      await fetchApi<{ requiresOtp: boolean; message: string }>("/auth/register", {
         method: "POST",
         data: {
           firstName: form.firstName.trim(),
@@ -98,11 +87,8 @@ export function RegisterPage() {
         },
       });
 
-      setToken(response.accessToken);
-      localStorage.setItem("user", JSON.stringify(response.user));
-      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      toast.success("Account created!");
-      navigate(response.user.role === "owner" ? "/owner/dashboard" : "/accommodations");
+      toast.success("Registration successful! Please check your email for the 6-digit OTP code.");
+      navigate(`/verify-otp?email=${encodeURIComponent(form.email.trim().toLowerCase())}`);
     } catch (err) {
       if (err instanceof ApiError) {
         // Map field-level details if available

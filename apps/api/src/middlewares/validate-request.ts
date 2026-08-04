@@ -14,20 +14,25 @@ export interface RequestValidationSchema {
  * Middleware to validate request body, query params, route parameters, and headers against Zod schemas.
  * Replaces request fields with their parsed/coerced versions.
  */
-export function validateRequest(schemas: RequestValidationSchema) {
+export function validateRequest(schemas: RequestValidationSchema | ZodTypeAny) {
   return (req: Request, _res: Response, next: NextFunction): void => {
     try {
-      if (schemas.params) {
-        req.params = schemas.params.parse(req.params);
-      }
-      if (schemas.query) {
-        req.query = schemas.query.parse(req.query);
-      }
-      if (schemas.body) {
-        req.body = schemas.body.parse(req.body);
-      }
-      if (schemas.headers) {
-        req.headers = schemas.headers.parse(req.headers);
+      if ("parse" in schemas && typeof (schemas as { parse?: unknown }).parse === "function") {
+        req.body = (schemas as ZodTypeAny).parse(req.body);
+      } else {
+        const s = schemas as RequestValidationSchema;
+        if (s.params) {
+          req.params = s.params.parse(req.params);
+        }
+        if (s.query) {
+          req.query = s.query.parse(req.query);
+        }
+        if (s.body) {
+          req.body = s.body.parse(req.body);
+        }
+        if (s.headers) {
+          req.headers = s.headers.parse(req.headers);
+        }
       }
       next();
     } catch (error: unknown) {

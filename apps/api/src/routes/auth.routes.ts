@@ -30,6 +30,11 @@ authRouter.post(
   asyncHandler(authController.register),
 );
 
+authRouter.post("/verify-otp", asyncHandler(authController.verifyOtpHandler));
+authRouter.post("/resend-otp", asyncHandler(authController.resendOtpHandler));
+authRouter.post("/forgot-password-otp", asyncHandler(authController.forgotPasswordOtpHandler));
+authRouter.post("/verify-reset-otp", asyncHandler(authController.verifyResetOtpHandler));
+
 authRouter.post(
   "/login",
   authRateLimiter,

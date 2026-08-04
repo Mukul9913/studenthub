@@ -170,4 +170,88 @@ export class AccommodationController {
       data: result,
     });
   };
+
+  getNearby = async (req: Request, res: Response): Promise<void> => {
+    const lat = Number(req.query.lat || req.query.latitude || 22.7196);
+    const lng = Number(req.query.lng || req.query.longitude || 75.8577);
+    const radiusMeters = Number(req.query.radius || req.query.radiusMeters || 5000);
+    const limit = Number(req.query.limit || 20);
+
+    const { getNearbyListings } = await import("../services/location.service.js");
+    const listings = await getNearbyListings(
+      lat,
+      lng,
+      radiusMeters,
+      "ACCOMMODATION",
+      "STRAIGHT",
+      limit,
+    );
+
+    res.status(200).json({
+      success: true,
+      data: listings,
+    });
+  };
+
+  search = async (req: Request, res: Response): Promise<void> => {
+    const {
+      q,
+      city,
+      state,
+      college,
+      coaching,
+      area,
+      lat,
+      lng,
+      radius,
+      minRent,
+      maxRent,
+      propertyType,
+      genderPreference,
+      page,
+      limit,
+    } = req.query;
+
+    const latitude = lat ? Number(lat) : undefined;
+    const longitude = lng ? Number(lng) : undefined;
+    const radiusMeters = radius ? Number(radius) : 5000;
+
+    if (latitude !== undefined && longitude !== undefined) {
+      const { getNearbyListings } = await import("../services/location.service.js");
+      const listings = await getNearbyListings(
+        latitude,
+        longitude,
+        radiusMeters,
+        "ACCOMMODATION",
+        "STRAIGHT",
+        limit ? Number(limit) : 20,
+      );
+
+      res.status(200).json({
+        success: true,
+        data: {
+          items: listings,
+          total: listings.length,
+        },
+      });
+      return;
+    }
+
+    const searchTerm = [q, college, coaching, area, city, state].filter(Boolean).join(" ");
+
+    const result = await this.accommodationService.listAccommodations({
+      area: searchTerm || (area ? String(area) : undefined),
+      propertyType: propertyType ? String(propertyType) : undefined,
+      genderPreference: genderPreference ? String(genderPreference) : undefined,
+      minRent: minRent ? Number(minRent) : undefined,
+      maxRent: maxRent ? Number(maxRent) : undefined,
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  };
 }
