@@ -8,6 +8,9 @@ import {
   Briefcase,
   MessageSquare,
   ArrowLeft,
+  TrendingUp,
+  Crown,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +29,10 @@ export function AdminLayout({
 
   const links = [
     { to: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
+    { to: "/admin/monetization", label: "Monetization & Plans", icon: Crown },
+    { to: "/admin/reviews", label: "Review Moderation", icon: Star },
+    { to: "/admin/moderation", label: "Listing Moderation", icon: ShieldCheck },
+    { to: "/admin/search-analytics", label: "Search Telemetry", icon: TrendingUp },
     { to: "/admin/listings", label: "Listings", icon: Building2 },
     { to: "/admin/users", label: "Users", icon: Users },
     { to: "/admin/owners", label: "Business Owners", icon: Briefcase },

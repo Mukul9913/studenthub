@@ -28,6 +28,9 @@ accommodationRouter.post(
   asyncHandler(accommodationController.uploadImages),
 );
 
+accommodationRouter.get("/nearby", asyncHandler(accommodationController.getNearby));
+accommodationRouter.get("/search", asyncHandler(accommodationController.search));
+
 accommodationRouter.get(
   "/owner/my-listings",
   authenticate,

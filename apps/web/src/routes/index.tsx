@@ -20,15 +20,27 @@ import { ProfilePage } from "@/pages/dashboard/ProfilePage";
 import { SettingsPage } from "@/pages/dashboard/SettingsPage";
 import { UserEnquiriesPage } from "@/pages/dashboard/UserEnquiriesPage";
 import { OwnerLeadsPage } from "@/pages/owner/OwnerLeadsPage";
+import { OwnerSubscriptionPage } from "@/pages/owner/OwnerSubscriptionPage";
+import { PublicOwnerProfilePage } from "@/pages/owner/PublicOwnerProfilePage";
+import { OwnerReviewAnalyticsPage } from "@/pages/owner/OwnerReviewAnalyticsPage";
 import { AdminDashboard } from "@/pages/admin/AdminDashboard";
 import { AdminListingsPage } from "@/pages/admin/AdminListingsPage";
 import { AdminUsersPage } from "@/pages/admin/AdminUsersPage";
 import { AdminOwnersPage } from "@/pages/admin/AdminOwnersPage";
 import { AdminEnquiriesPage } from "@/pages/admin/AdminEnquiriesPage";
+import { AdminModerationPage } from "@/pages/admin/AdminModerationPage";
+import { AdminSearchAnalyticsPage } from "@/pages/admin/AdminSearchAnalyticsPage";
+import { AdminMonetizationPage } from "@/pages/admin/AdminMonetizationPage";
+import { AdminReviewModerationPage } from "@/pages/admin/AdminReviewModerationPage";
+import { AdminCRMAnalyticsPage } from "@/pages/admin/AdminCRMAnalyticsPage";
 import { ForbiddenPage } from "@/pages/ForbiddenPage";
+import { StudentPreferencesPage } from "@/pages/dashboard/StudentPreferencesPage";
+import { OwnerCRMPage } from "@/pages/owner/OwnerCRMPage";
+import { OwnerListingAnalyticsPage } from "@/pages/owner/OwnerListingAnalyticsPage";
 
 import { LoginPage } from "@/pages/auth/LoginPage";
 import { RegisterPage } from "@/pages/auth/RegisterPage";
+import { OtpVerificationPage } from "@/pages/auth/OtpVerificationPage";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
@@ -48,6 +60,7 @@ export function AppRouter() {
 
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="verify-otp" element={<OtpVerificationPage />} />
         <Route path="forbidden" element={<ForbiddenPage />} />
 
         <Route path="accommodations" element={<AccommodationsPage />} />
@@ -115,6 +128,47 @@ export function AppRouter() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="owner/subscription"
+          element={
+            <ProtectedRoute allowedRoles={["owner"]}>
+              <OwnerSubscriptionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="owner/reviews"
+          element={
+            <ProtectedRoute allowedRoles={["owner"]}>
+              <OwnerReviewAnalyticsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="owner/crm"
+          element={
+            <ProtectedRoute allowedRoles={["owner"]}>
+              <OwnerCRMPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="owner/listing-analytics"
+          element={
+            <ProtectedRoute allowedRoles={["owner"]}>
+              <OwnerListingAnalyticsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="dashboard/preferences"
+          element={
+            <ProtectedRoute>
+              <StudentPreferencesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="owner/profile/:id" element={<PublicOwnerProfilePage />} />
         <Route
           path="owner/profile"
           element={
@@ -201,6 +255,46 @@ export function AppRouter() {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <AdminEnquiriesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="admin/moderation"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminModerationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="admin/search-analytics"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminSearchAnalyticsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="admin/monetization"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminMonetizationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="admin/reviews"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminReviewModerationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="admin/crm-analytics"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminCRMAnalyticsPage />
             </ProtectedRoute>
           }
         />

@@ -1,0 +1,42 @@
+# ==============================================================================
+# StudentHub Docker Ignore File
+# Prevents host artifacts, secrets, logs, and unneeded files from entering build context
+# ==============================================================================
+
+# Dependencies & Build Artifacts
+node_modules/
+.pnpm-store/
+dist/
+build/
+out/
+.turbo/
+*.tsbuildinfo
+
+# Environment & Secrets (NEVER copy into docker image)
+.env
+.env.*
+!.env.example
+
+# Version Control & IDE
+.git/
+.gitignore
+.github/
+.idea/
+.vscode/
+
+# Testing & Coverage
+coverage/
+.nyc_output/
+
+# Logs & Temporary Files
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+tmp/
+temp/
+.cache/
+.DS_Store
+Thumbs.db

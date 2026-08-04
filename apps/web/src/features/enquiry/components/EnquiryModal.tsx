@@ -27,6 +27,8 @@ interface EnquiryModalProps {
   triggerText?: string;
   triggerVariant?: "default" | "outline" | "secondary";
   triggerClassName?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function EnquiryModal({
@@ -38,8 +40,12 @@ export function EnquiryModal({
   triggerText = "Enquire Now",
   triggerVariant = "default",
   triggerClassName,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
 }: EnquiryModalProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setIsOpen = setControlledOpen || setInternalOpen;
   const [message, setMessage] = useState(
     `Hi, I am interested in ${targetTitle} located in ${targetArea}. Please share details regarding availability and pricing.`,
   );
@@ -78,16 +84,8 @@ export function EnquiryModal({
     mutation.mutate();
   };
 
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-    if (!newOpen) {
-      setIsSuccess(false);
-      setErrorMessage(null);
-    }
-  };
-
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant={triggerVariant} className={triggerClassName}>
           <MessageSquare className="mr-2 h-4 w-4" /> {triggerText}
@@ -141,7 +139,7 @@ export function EnquiryModal({
               dashboard.
             </p>
             <div className="pt-2 flex justify-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setOpen(false)}>
+              <Button variant="outline" size="sm" onClick={() => setIsOpen(false)}>
                 Close
               </Button>
               <Button size="sm" asChild>
@@ -174,7 +172,7 @@ export function EnquiryModal({
             </div>
 
             <div className="pt-2 flex items-center justify-end gap-2">
-              <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit" size="sm" disabled={mutation.isPending} className="gap-2">

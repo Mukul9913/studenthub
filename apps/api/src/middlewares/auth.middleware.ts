@@ -36,6 +36,30 @@ export function authenticate(req: Request, _res: Response, next: NextFunction): 
   }
 }
 
+export function optionalAuthenticate(req: Request, _res: Response, next: NextFunction): void {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return next();
+  }
+
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, env.JWT_ACCESS_SECRET) as unknown as JWTPayload;
+    req.user = {
+      id: decoded.sub,
+      role: decoded.role,
+      ownerType: decoded.ownerType,
+    };
+  } catch {
+    // Silently ignore token errors for optional auth
+  }
+  next();
+}
+
 export const requireAuth = authenticate;
 
 export function requireRoles(...allowedRoles: (UserRole | string)[]) {
@@ -61,3 +85,5 @@ export function requireRoles(...allowedRoles: (UserRole | string)[]) {
 export function requireAnyRole(allowedRoles: (UserRole | string)[]) {
   return requireRoles(...allowedRoles);
 }
+
+export const authorize = requireAnyRole;

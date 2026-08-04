@@ -8,6 +8,10 @@ import {
   MessageSquare,
   User,
   CalendarCheck,
+  Crown,
+  Star,
+  TrendingUp,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "../ui/button";
 
@@ -93,6 +97,10 @@ export const USER_SIDEBAR: SidebarLink[] = [
 
 export const OWNER_SIDEBAR: SidebarLink[] = [
   { to: "/owner/dashboard", label: "Overview", icon: LayoutDashboard },
+  { to: "/owner/crm", label: "CRM Pipeline", icon: TrendingUp },
+  { to: "/owner/listing-analytics", label: "Listing Analytics", icon: BarChart3 },
+  { to: "/owner/subscription", label: "Subscription & Upgrades", icon: Crown },
+  { to: "/owner/reviews", label: "Reviews & Feedback", icon: Star },
   { to: "/owner/listings", label: "My Listings", icon: Home },
   { to: "/owner/accommodations/new", label: "Add Listing", icon: PlusCircle },
   { to: "/owner/availability", label: "Availability", icon: CalendarCheck },
@@ -104,6 +112,10 @@ export function getOwnerSidebar(ownerType?: string | null): SidebarLink[] {
   if (ownerType === "library") {
     return [
       { to: "/owner/dashboard", label: "Overview", icon: LayoutDashboard },
+      { to: "/owner/crm", label: "CRM Pipeline", icon: TrendingUp },
+      { to: "/owner/listing-analytics", label: "Listing Analytics", icon: BarChart3 },
+      { to: "/owner/subscription", label: "Subscription & Upgrades", icon: Crown },
+      { to: "/owner/reviews", label: "Reviews & Feedback", icon: Star },
       { to: "/owner/listings", label: "My Libraries", icon: Home },
       { to: "/owner/accommodations/new", label: "Add Library", icon: PlusCircle },
       { to: "/owner/leads", label: "Leads", icon: MessageSquare },
@@ -113,6 +125,10 @@ export function getOwnerSidebar(ownerType?: string | null): SidebarLink[] {
   if (ownerType === "mess") {
     return [
       { to: "/owner/dashboard", label: "Overview", icon: LayoutDashboard },
+      { to: "/owner/crm", label: "CRM Pipeline", icon: TrendingUp },
+      { to: "/owner/listing-analytics", label: "Listing Analytics", icon: BarChart3 },
+      { to: "/owner/subscription", label: "Subscription & Upgrades", icon: Crown },
+      { to: "/owner/reviews", label: "Reviews & Feedback", icon: Star },
       { to: "/owner/listings", label: "My Messes", icon: Home },
       { to: "/owner/accommodations/new", label: "Add Mess", icon: PlusCircle },
       { to: "/owner/leads", label: "Leads", icon: MessageSquare },
@@ -122,6 +138,10 @@ export function getOwnerSidebar(ownerType?: string | null): SidebarLink[] {
   if (ownerType === "service_provider") {
     return [
       { to: "/owner/dashboard", label: "Overview", icon: LayoutDashboard },
+      { to: "/owner/crm", label: "CRM Pipeline", icon: TrendingUp },
+      { to: "/owner/listing-analytics", label: "Listing Analytics", icon: BarChart3 },
+      { to: "/owner/subscription", label: "Subscription & Upgrades", icon: Crown },
+      { to: "/owner/reviews", label: "Reviews & Feedback", icon: Star },
       { to: "/owner/listings", label: "My Services", icon: Home },
       { to: "/owner/accommodations/new", label: "Add Service", icon: PlusCircle },
       { to: "/owner/leads", label: "Leads", icon: MessageSquare },

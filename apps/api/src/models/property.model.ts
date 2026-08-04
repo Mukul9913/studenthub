@@ -8,10 +8,16 @@ export interface IProperty extends Document {
   description: string;
   propertyType: PropertyType;
   location: {
+    formattedAddress?: string;
     address: string;
     city: string;
     state: string;
-    zipCode: string;
+    country?: string;
+    pincode?: string;
+    zipCode?: string;
+    latitude?: number;
+    longitude?: number;
+    googlePlaceId?: string;
     coordinates: {
       type: "Point";
       coordinates: [number, number]; // [longitude, latitude]
@@ -30,7 +36,15 @@ export interface IProperty extends Document {
   images: string[];
   videos: string[];
   isVerified: boolean;
-  status: "draft" | "pending_review" | "published" | "rejected" | "archived";
+  verificationStatus?: string;
+  verificationDate?: Date;
+  verifiedBy?: mongoose.Types.ObjectId;
+  status: string;
+  submittedAt?: Date;
+  reviewedAt?: Date;
+  reviewedBy?: mongoose.Types.ObjectId;
+  assignedModeratorId?: mongoose.Types.ObjectId;
+  moderationNotes?: string;
   rejectionReason?: string;
   avgRating: number;
   reviewsCount: number;
@@ -66,6 +80,7 @@ const propertySchema = new Schema<IProperty>(
       required: [true, "Property type is required"],
     },
     location: {
+      formattedAddress: { type: String, trim: true },
       address: {
         type: String,
         required: [true, "Address is required"],
@@ -75,18 +90,18 @@ const propertySchema = new Schema<IProperty>(
         type: String,
         required: [true, "City is required"],
         trim: true,
-        lowercase: true,
       },
       state: {
         type: String,
         required: [true, "State is required"],
         trim: true,
       },
-      zipCode: {
-        type: String,
-        required: [true, "Zip code is required"],
-        trim: true,
-      },
+      country: { type: String, default: "India" },
+      pincode: { type: String, trim: true },
+      zipCode: { type: String, trim: true },
+      latitude: { type: Number },
+      longitude: { type: Number },
+      googlePlaceId: { type: String, trim: true },
       coordinates: {
         type: {
           type: String,
@@ -169,15 +184,30 @@ const propertySchema = new Schema<IProperty>(
       type: Boolean,
       default: false,
     },
+    verificationStatus: {
+      type: String,
+      default: "UNVERIFIED",
+      uppercase: true,
+    },
+    verificationDate: {
+      type: Date,
+    },
+    verifiedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
     status: {
       type: String,
-      enum: ["draft", "pending_review", "published", "rejected", "archived"],
-      default: "pending_review",
+      default: "APPROVED",
+      uppercase: true,
+      index: true,
     },
-    rejectionReason: {
-      type: String,
-      trim: true,
-    },
+    submittedAt: { type: Date },
+    reviewedAt: { type: Date },
+    reviewedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    assignedModeratorId: { type: Schema.Types.ObjectId, ref: "User" },
+    moderationNotes: { type: String, trim: true },
+    rejectionReason: { type: String, trim: true },
     avgRating: {
       type: Number,
       default: 0,
@@ -211,8 +241,9 @@ const propertySchema = new Schema<IProperty>(
 
 // Indexes
 propertySchema.index({ ownerId: 1 });
+propertySchema.index({ status: 1 });
 propertySchema.index({ "location.coordinates": "2dsphere" });
-propertySchema.index({ "location.city": 1, area: 1 });
+propertySchema.index({ "location.city": 1, area: 1, status: 1 });
 propertySchema.index({ title: "text", description: "text", area: "text" });
 
 export const PropertyModel = mongoose.model<IProperty>("Property", propertySchema);

@@ -14,6 +14,10 @@ export interface IUser extends Document {
   passwordHash?: string;
   isVerified: boolean;
   isActive: boolean;
+  emailOtpHash?: string;
+  emailOtpExpiresAt?: Date;
+  emailOtpResendAfter?: Date;
+  emailOtpAttempts?: number;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(password: string): Promise<boolean>;
@@ -77,6 +81,23 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: true,
       required: true,
+    },
+    emailOtpHash: {
+      type: String,
+      select: false,
+    },
+    emailOtpExpiresAt: {
+      type: Date,
+      select: false,
+    },
+    emailOtpResendAfter: {
+      type: Date,
+      select: false,
+    },
+    emailOtpAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
     },
   },
   {

@@ -36,9 +36,7 @@ export class AuthService {
     return crypto.randomBytes(40).toString("hex");
   }
 
-  async register(
-    dto: RegisterUserDto,
-  ): Promise<{ user: IUser; accessToken: string; refreshToken: string }> {
+  async register(dto: RegisterUserDto): Promise<{ user: IUser }> {
     if ((dto as unknown as { role?: string }).role === "admin") {
       throw new ForbiddenError(
         "Cannot register as admin through public registration",
@@ -76,7 +74,10 @@ export class AuthService {
     }
 
     const user = await this.userRepository.create(userData);
+    return { user };
+  }
 
+  async issueTokensForUser(user: IUser): Promise<{ accessToken: string; refreshToken: string }> {
     const accessToken = this.generateAccessToken(user);
     const refreshTokenValue = this.generateRefreshTokenValue();
 
@@ -90,7 +91,6 @@ export class AuthService {
     });
 
     return {
-      user,
       accessToken,
       refreshToken: refreshTokenValue,
     };
@@ -103,6 +103,13 @@ export class AuthService {
     // Standard delay check and generic credentials warning to prevent user enumeration
     if (!user || !user.isActive) {
       throw new UnauthorizedError("Invalid email or password", "INVALID_CREDENTIALS");
+    }
+
+    if (!user.isVerified) {
+      throw new UnauthorizedError(
+        "Email address is not verified. Please verify your account using OTP.",
+        "EMAIL_NOT_VERIFIED",
+      );
     }
 
     const isMatch = await user.comparePassword(dto.password || "");

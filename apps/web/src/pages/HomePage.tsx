@@ -1,34 +1,32 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ArrowRight,
   Search,
   BadgeCheck,
   MessageCircle,
   KeyRound,
-  ShieldCheck,
   Eye,
   MapPin,
   Sparkles,
   BookOpen,
   Building2,
-  UtensilsCrossed,
-  Dumbbell,
-  Shirt,
-  Bike,
   Star,
   Users,
+  Brain,
 } from "lucide-react";
 
 import { SiteLayout } from "../components/layout/SiteLayout";
-import { HeroSearch } from "../components/common/HeroSearch";
-import { INDORE_AREAS } from "../features/accommodation/mock-data/areas";
-import { getAccommodations } from "../features/accommodation/services";
-import { getLibraries } from "../features/library/services";
-import { AccommodationCard } from "../features/accommodation/components/AccommodationCard";
-import { LibraryCard } from "../features/library/components/LibraryCard";
+import { SEOHead } from "../components/seo/SEOHead";
+import { GlobalSearchBar } from "../components/search/GlobalSearchBar";
+import { HomeSection } from "../components/home/HomeSection";
+import {
+  RecommendationCard,
+  RecentlyViewedCard,
+} from "../components/recommendation/RecommendationCard";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { getHomeFeed } from "@/services/recommendation";
 
 const HOW_STEPS = [
   {
@@ -37,136 +35,77 @@ const HOW_STEPS = [
     desc: "Browse verified PGs, hostels, and silent libraries across Indore.",
   },
   {
-    icon: BadgeCheck,
-    title: "Filter & Compare",
-    desc: "Filter by rent, monthly fee, AC, Wi-Fi, and exact locality.",
+    icon: Eye,
+    title: "Compare & Shortlist",
+    desc: "View galleries, pricing, facilities, and owner profiles side-by-side.",
   },
   {
     icon: MessageCircle,
-    title: "Direct Contact",
-    desc: "Send direct inquiries to property and library owners without brokers.",
+    title: "Send a Visit Request",
+    desc: "Connect with owners directly. No broker fees, no middlemen.",
   },
   {
     icon: KeyRound,
-    title: "Settle In Indore",
-    desc: "Move into your accommodation and discover local food, laundry, and gyms.",
+    title: "Move In",
+    desc: "Visit the property and move in. 100% hassle-free process.",
   },
 ];
 
-const TRUST_POINTS = [
-  {
-    icon: ShieldCheck,
-    title: "100% Verified Owners",
-    desc: "Every owner identity and listing is verified before publishing.",
-  },
-  {
-    icon: Eye,
-    title: "Zero Broker Fees",
-    desc: "Direct transparent contact with owners. No hidden broker charges.",
-  },
-  {
-    icon: MapPin,
-    title: "Indore Student Hubs",
-    desc: "Curated listings in Bhawarkua, Vijay Nagar, Geeta Bhawan, Palasia & Old Palasia.",
-  },
-  {
-    icon: Sparkles,
-    title: "Aspirant Centric",
-    desc: "Tailored specifically for MPPSC, UPSC aspirants, engineering students, and professionals.",
-  },
+const QUICK_STATS = [
+  { icon: Building2, value: "500+", label: "Verified Listings" },
+  { icon: Users, value: "2,000+", label: "Happy Students" },
+  { icon: BadgeCheck, value: "100%", label: "Owner Verified" },
+  { icon: Star, value: "4.8★", label: "Avg. Rating" },
 ];
 
-const MOCK_MESSES = [
-  {
-    name: "Shree Ram Thali & Tiffin Service",
-    area: "Bhawarkua, Indore",
-    price: "₹2,400 / month",
-    type: "Pure Veg • Unlimited Thali",
-    rating: 4.8,
-    image:
-      "https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    name: "Indori Taste Student Mess",
-    area: "Vijay Nagar, Indore",
-    price: "₹2,800 / month",
-    type: "North & South Indian",
-    rating: 4.7,
-    image:
-      "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    name: "Annapurna Home Tiffin",
-    area: "Geeta Bhawan, Indore",
-    price: "₹2,200 / month",
-    type: "Home Cooked Veg Meals",
-    rating: 4.9,
-    image:
-      "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?auto=format&fit=crop&w=600&q=80",
-  },
-];
-
-const MOCK_SERVICES = [
-  {
-    name: "SpeedyClean Student Laundry",
-    category: "Laundry & Ironing",
-    area: "Bhawarkua",
-    icon: Shirt,
-    badge: "Doorstep Pickup",
-  },
-  {
-    name: "Iron Fitness 24/7 Gym",
-    category: "Gym & Fitness",
-    area: "Vijay Nagar",
-    icon: Dumbbell,
-    badge: "Student Discount",
-  },
-  {
-    name: "Indore EV & Bike Rental",
-    category: "Vehicle Rental",
-    area: "Geeta Bhawan",
-    icon: Bike,
-    badge: "Daily / Monthly",
-  },
+const POPULAR_AREAS = [
+  "Vijay Nagar",
+  "Palasia",
+  "Bhawarkua",
+  "South Tukoganj",
+  "Rajwada",
+  "Geeta Bhawan",
+  "MR 10",
 ];
 
 const TESTIMONIALS = [
   {
     name: "Aarav Sharma",
     role: "MPPSC Aspirant, Bhawarkua",
-    text: "Finding a quiet 24x7 library near my PG in Bhawarkua was effortless with StudentHub. Direct owner contact saved me 2,000 INR broker fees!",
+    text: "Finding a quiet 24x7 library near my PG in Bhawarkua was effortless with StudentHub. Direct owner contact saved me ₹2,000 in broker fees!",
+    rating: 5,
   },
   {
     name: "Priya Patel",
     role: "IT Professional, Vijay Nagar",
     text: "Moved from Bhopal to Indore for work. Found a verified girls PG with AC and Wi-Fi within 2 hours. Extremely reliable platform!",
+    rating: 5,
   },
   {
     name: "Rohit Verma",
     role: "SGSITS Engineering Student",
-    text: "The library discovery feature is a lifesaver during exams. I booked a reserved desk with power backup in Palasia instantly.",
+    text: "The personalized recommendation feature is a lifesaver during exams. Found a reserved desk library with power backup in Palasia instantly.",
+    rating: 5,
   },
 ];
 
 export function HomePage() {
-  // Fetch real featured accommodations from API
-  const { data: accommodationsData, isLoading: loadingAcc } = useQuery({
-    queryKey: ["featured-accommodations"],
-    queryFn: () => getAccommodations({ limit: 6, sort: "recommended" }),
-  });
+  const { user, isAuthenticated } = useAuth();
 
-  // Fetch real featured libraries from API
-  const { data: librariesData, isLoading: loadingLib } = useQuery({
-    queryKey: ["featured-libraries"],
-    queryFn: () => getLibraries({ limit: 6, sort: "recommended" }),
+  const { data: feed, isLoading: feedLoading } = useQuery({
+    queryKey: ["home-feed", user?.id],
+    queryFn: getHomeFeed,
+    staleTime: 5 * 60 * 1000, // 5 min cache
   });
-
-  const featuredAcc = accommodationsData?.items || [];
-  const featuredLib = librariesData?.items || [];
 
   return (
     <SiteLayout>
-      {/* HERO */}
+      <SEOHead
+        title="StudentHub | Find Best PGs, Hostels & Libraries in Indore"
+        description="Indore's #1 Marketplace for Students & Aspirants. Discover 100% verified PGs, Hostels, Flats, and 24x7 AC Study Libraries in Bhawarkua, Vijay Nagar, and Palasia."
+      />
+
+      {/* ── HERO ────────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary-soft/60 via-background to-background" />
         <div className="mx-auto max-w-7xl px-4 pb-16 pt-12 md:px-6 md:pb-24 md:pt-20">
@@ -176,407 +115,515 @@ export function HomePage() {
               className="rounded-full px-3 py-1 bg-primary/10 text-primary border-primary/20"
             >
               <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              #1 Student & Aspirant Platform in Indore, MP
+              {isAuthenticated
+                ? `Welcome back, ${user?.firstName}!`
+                : "#1 Student Platform in Indore, MP"}
             </Badge>
             <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-foreground md:text-6xl">
-              Your Complete Lifestyle in <span className="text-primary">Indore.</span>
+              {isAuthenticated ? (
+                <>
+                  Listings picked <span className="text-primary">just for you.</span>
+                </>
+              ) : (
+                <>
+                  Your Complete Lifestyle in <span className="text-primary">Indore.</span>
+                </>
+              )}
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground md:text-lg">
-              Discover verified PGs, hostels, silent study libraries, mess tiffins, and essential
-              local services across Indore.
+              {isAuthenticated
+                ? "Personalized PGs, hostels, and study libraries based on your preferences, budget, and browsing history."
+                : "Discover verified PGs, hostels, silent study libraries, mess tiffins, and essential local services across Indore."}
             </p>
           </div>
 
-          <div className="mx-auto mt-8 max-w-4xl">
-            <HeroSearch />
+          <div className="mx-auto mt-8 flex justify-center">
+            <GlobalSearchBar className="mx-auto" />
           </div>
 
-          <div className="mx-auto mt-8 flex max-w-3xl flex-wrap items-center justify-center gap-x-8 gap-y-2 text-xs font-medium text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="h-4 w-4 text-emerald-600" /> 100% Verified Owners
-            </span>
-            <span className="flex items-center gap-1.5">
-              <BadgeCheck className="h-4 w-4 text-primary" /> Zero Broker Commission
-            </span>
-            <span className="flex items-center gap-1.5">
-              <MapPin className="h-4 w-4 text-accent" /> Bhawarkua, Vijay Nagar, Palasia & More
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* STATS COUNTER */}
-      <section className="border-y border-border bg-card/60 py-8 px-4 md:px-6">
-        <div className="mx-auto max-w-7xl grid grid-cols-2 gap-4 md:grid-cols-4 text-center">
-          <div>
-            <p className="text-3xl font-extrabold text-primary">500+</p>
-            <p className="text-xs text-muted-foreground mt-1 font-medium">
-              Verified Accommodations
-            </p>
-          </div>
-          <div>
-            <p className="text-3xl font-extrabold text-amber-600">120+</p>
-            <p className="text-xs text-muted-foreground mt-1 font-medium">Silent Study Libraries</p>
-          </div>
-          <div>
-            <p className="text-3xl font-extrabold text-emerald-600">15,000+</p>
-            <p className="text-xs text-muted-foreground mt-1 font-medium">Students & Aspirants</p>
-          </div>
-          <div>
-            <p className="text-3xl font-extrabold text-purple-600">4.9 / 5</p>
-            <p className="text-xs text-muted-foreground mt-1 font-medium">Average Satisfaction</p>
-          </div>
-        </div>
-      </section>
-
-      {/* POPULAR AREAS IN INDORE */}
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
-        <div className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-end">
-          <div>
-            <Badge
-              variant="outline"
-              className="mb-2 bg-accent/10 text-accent-foreground border-accent/20"
-            >
-              <MapPin className="mr-1 h-3 w-3" /> Indore Neighborhoods
-            </Badge>
-            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-              Popular Areas in Indore
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Explore coaching centers and student hubs loved by aspirants.
-            </p>
-          </div>
-          <Link
-            to="/accommodations"
-            className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
-          >
-            Browse all localities <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {INDORE_AREAS.map((area) => (
-            <Link
-              key={area.slug}
-              to={`/accommodations?area=${area.name}`}
-              className="group relative overflow-hidden rounded-2xl border border-border bg-card transition hover:border-primary/50 shadow-sm"
-            >
-              <div className="aspect-[4/3] overflow-hidden">
-                <img
-                  src={area.imageUrl}
-                  alt={area.name}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-              </div>
-              <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-bold">{area.name}</h3>
-                  <Badge className="bg-white/90 text-black hover:bg-white text-[10px] font-bold">
-                    {area.listingCount} Listings
-                  </Badge>
-                </div>
-                <p className="mt-1 text-xs text-white/80 line-clamp-1">{area.description}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* FEATURED LIBRARIES */}
-      <section className="bg-muted/30 border-y border-border py-16 px-4 md:px-6">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-end">
-            <div>
-              <Badge
-                variant="outline"
-                className="mb-2 bg-amber-500/10 text-amber-600 border-amber-200"
+          {/* Popular Areas */}
+          <div className="mx-auto mt-6 flex max-w-3xl flex-wrap items-center justify-center gap-2">
+            {POPULAR_AREAS.map((area) => (
+              <Link
+                key={area}
+                to={`/accommodations?area=${encodeURIComponent(area)}`}
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors"
               >
-                <BookOpen className="mr-1 h-3 w-3" /> Silent Reading Halls
-              </Badge>
-              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-                Featured Study Libraries
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Reserved desks with 24/7 AC, Wi-Fi, and personal lockers.
-              </p>
-            </div>
-            <Button variant="outline" size="sm" asChild className="gap-1.5 text-xs">
-              <Link to="/libraries">
-                View All Libraries <ArrowRight className="h-3.5 w-3.5" />
+                <MapPin className="h-3 w-3" />
+                {area}
               </Link>
-            </Button>
-          </div>
-
-          <div className="mt-8">
-            {loadingLib ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {[...Array(3)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-64 rounded-2xl border border-border bg-card animate-pulse bg-muted/40"
-                  />
-                ))}
-              </div>
-            ) : featuredLib.length === 0 ? (
-              <div className="rounded-2xl border border-border bg-card p-8 text-center text-xs text-muted-foreground">
-                No libraries published yet. Make sure your owner listings are published!
-              </div>
-            ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {featuredLib.slice(0, 3).map((item) => (
-                  <LibraryCard key={item.id} item={item} />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURED ACCOMMODATIONS */}
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
-        <div className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-end">
-          <div>
-            <Badge variant="outline" className="mb-2 bg-blue-500/10 text-blue-600 border-blue-200">
-              <Building2 className="mr-1 h-3 w-3" /> Verified Stays
-            </Badge>
-            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-              Featured Accommodations
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Hand-picked PGs, hostels, and private rooms in Indore.
-            </p>
-          </div>
-          <Button variant="outline" size="sm" asChild className="gap-1.5 text-xs">
-            <Link to="/accommodations">
-              View All Accommodations <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </Button>
-        </div>
-
-        <div className="mt-8">
-          {loadingAcc ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="h-64 rounded-2xl border border-border bg-card animate-pulse bg-muted/40"
-                />
-              ))}
-            </div>
-          ) : featuredAcc.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card p-8 text-center text-xs text-muted-foreground">
-              No accommodations published yet.
-            </div>
-          ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {featuredAcc.slice(0, 3).map((item) => (
-                <AccommodationCard key={item.id} item={item} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* FEATURED MESSES & FOOD SERVICES */}
-      <section className="bg-card border-y border-border py-16 px-4 md:px-6">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-end">
-            <div>
-              <Badge
-                variant="outline"
-                className="mb-2 bg-emerald-500/10 text-emerald-600 border-emerald-200"
-              >
-                <UtensilsCrossed className="mr-1 h-3 w-3" /> Mess & Tiffin Services
-              </Badge>
-              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-                Popular Mess & Tiffin Services
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Hygienic, home-style meals delivered daily to student rooms.
-              </p>
-            </div>
-            <Badge className="bg-emerald-600 text-white text-xs">Indore Taste Guaranteed</Badge>
-          </div>
-
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {MOCK_MESSES.map((mess, idx) => (
-              <div
-                key={idx}
-                className="group overflow-hidden rounded-2xl border border-border bg-background shadow-sm hover:border-emerald-500/40 transition"
-              >
-                <div className="aspect-[16/9] overflow-hidden relative">
-                  <img
-                    src={mess.image}
-                    alt={mess.name}
-                    className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
-                  />
-                  <Badge className="absolute top-3 right-3 bg-black/75 text-white gap-1 text-[11px]">
-                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {mess.rating}
-                  </Badge>
-                </div>
-                <div className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-foreground text-sm group-hover:text-emerald-600 transition">
-                      {mess.name}
-                    </h3>
-                  </div>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5 text-emerald-600" /> {mess.area}
-                  </p>
-                  <div className="flex items-center justify-between pt-2 border-t border-border">
-                    <span className="text-xs font-medium text-foreground">{mess.type}</span>
-                    <span className="text-xs font-bold text-emerald-600">{mess.price}</span>
-                  </div>
-                </div>
-              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* POPULAR LOCAL SERVICES */}
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
-        <div className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-end">
-          <div>
-            <Badge
-              variant="outline"
-              className="mb-2 bg-purple-500/10 text-purple-600 border-purple-200"
-            >
-              <Sparkles className="mr-1 h-3 w-3" /> Student Utilities
-            </Badge>
-            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-              Popular Student Services
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Laundry, gym memberships, and bike rentals around your stay.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-8 grid gap-5 sm:grid-cols-3">
-          {MOCK_SERVICES.map((s, idx) => {
-            const Icon = s.icon;
-            return (
-              <div
-                key={idx}
-                className="rounded-2xl border border-border bg-card p-5 space-y-3 hover:border-purple-500/40 transition"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-purple-500/10 text-purple-600">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <Badge
-                    variant="secondary"
-                    className="text-[10px] bg-purple-500/10 text-purple-600 border-purple-200"
-                  >
-                    {s.badge}
-                  </Badge>
+      {/* ── QUICK STATS ──────────────────────────────────────────────────────── */}
+      <section className="border-y border-border bg-card/50 py-6">
+        <div className="mx-auto max-w-7xl px-4 md:px-6">
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+            {QUICK_STATS.map(({ icon: Icon, value, label }) => (
+              <div key={label} className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                  <Icon className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-foreground text-sm">{s.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {s.category} • {s.area}
-                  </p>
+                  <p className="text-lg font-bold text-foreground">{value}</p>
+                  <p className="text-xs text-muted-foreground">{label}</p>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className="bg-muted/30 border-y border-border py-16 px-4 md:px-6">
-        <div className="mx-auto max-w-7xl">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">How StudentHub Works</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              From searching in Indore to settling into your new routine in four easy steps.
-            </p>
-          </div>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {HOW_STEPS.map((s, i) => (
-              <div key={s.title} className="rounded-2xl border border-border bg-card p-6 relative">
-                <div className="flex items-center justify-between">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
-                    <s.icon className="h-5 w-5" />
-                  </span>
-                  <span className="text-xs font-bold text-muted-foreground/60">0{i + 1}</span>
-                </div>
-                <h3 className="mt-4 text-base font-bold text-foreground">{s.title}</h3>
-                <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{s.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* WHY CHOOSE STUDENTHUB */}
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-            Why Students & Aspirants Choose StudentHub
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Built specifically for students relocating to Indore for coaching, exams, and jobs.
-          </p>
+      {/* ── PERSONALIZED: RECOMMENDED FOR YOU (Authenticated users only) ─────── */}
+      {isAuthenticated && (
+        <HomeSection
+          title="Recommended For You"
+          subtitle="Based on your profile, budget, and preferences"
+          badge="AI Picks"
+          accentColor="bg-violet-600"
+          isLoading={feedLoading}
+          isEmpty={!feed?.recommendedForYou?.length}
+          viewAllHref={`/libraries`}
+        >
+          {feed?.recommendedForYou?.map((rec) => (
+            <RecommendationCard key={rec.id} rec={rec} />
+          ))}
+        </HomeSection>
+      )}
+
+      {/* ── RECENTLY VIEWED (Authenticated users only) ───────────────────────── */}
+      {isAuthenticated && !!feed?.recentlyViewed?.length && (
+        <HomeSection
+          title="Continue Browsing"
+          subtitle="Pick up where you left off"
+          badge="Recent"
+          accentColor="bg-slate-600"
+          isEmpty={!feed?.recentlyViewed?.length}
+        >
+          {feed.recentlyViewed.map((v) => (
+            <RecentlyViewedCard
+              key={v.id}
+              targetType={v.targetType}
+              targetId={v.targetId}
+              title={v.targetTitle}
+              area={v.targetArea}
+              rating={v.targetRating}
+              price={v.targetPrice}
+              viewedAt={v.viewedAt}
+            />
+          ))}
+        </HomeSection>
+      )}
+
+      {/* ── POPULAR EDUCATION CENTERS ───────────────────────────────────────── */}
+      <section className="py-10 border-b border-border bg-card/30">
+        <div className="mx-auto max-w-7xl px-4 md:px-6 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-violet-600" />
+                <Badge variant="outline" className="bg-violet-50 text-violet-700 border-violet-200">
+                  Education Ecosystem
+                </Badge>
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mt-1">
+                Popular Education Centers in Indore
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Find libraries, PGs, and study cafes around your coaching institute or campus
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                name: "Physics Wallah Indore",
+                slug: "physics-wallah-indore",
+                type: "Coaching Institute",
+                area: "Old Palasia",
+                desc: "JEE, NEET & Foundation coaching hub.",
+                color: "from-blue-600 to-indigo-600",
+              },
+              {
+                name: "Drishti IAS Indore",
+                slug: "drishti-ias-indore",
+                type: "Coaching Institute",
+                area: "Bhawarkua Square",
+                desc: "UPSC & MPPSC civil services hub.",
+                color: "from-amber-600 to-orange-600",
+              },
+              {
+                name: "Allen Career Institute",
+                slug: "allen-indore",
+                type: "Coaching Institute",
+                area: "LIG Square",
+                desc: "Medical & Engineering prep campus.",
+                color: "from-emerald-600 to-teal-600",
+              },
+              {
+                name: "Aakash Institute",
+                slug: "aakash-indore",
+                type: "Coaching Institute",
+                area: "Geeta Bhawan",
+                desc: "NEET & JEE competitive exam prep.",
+                color: "from-sky-600 to-cyan-600",
+              },
+              {
+                name: "Devi Ahilya Vishwavidyalaya (DAVV)",
+                slug: "davv-indore",
+                type: "State University",
+                area: "Khandwa Road & RNT Marg",
+                desc: "Grade A+ NAAC Accredited University.",
+                color: "from-purple-600 to-pink-600",
+              },
+              {
+                name: "SGSITS Indore",
+                slug: "sgsits-indore",
+                type: "Autonomous College",
+                area: "Park Road, Vallabh Nagar",
+                desc: "Premier engineering institute.",
+                color: "from-red-600 to-rose-600",
+              },
+            ].map((ec) => (
+              <Link
+                key={ec.slug}
+                to={`/education-centers/${ec.slug}`}
+                className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-semibold text-primary">
+                      {ec.type}
+                    </span>
+                    <h3 className="font-bold text-foreground text-base mt-2 group-hover:text-primary transition-colors">
+                      {ec.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                      <MapPin className="h-3 w-3 text-primary shrink-0" />
+                      {ec.area}
+                    </p>
+                  </div>
+                  <div
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${ec.color} text-white shadow`}
+                  >
+                    <Brain className="h-5 w-5" />
+                  </div>
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground line-clamp-2">{ec.desc}</p>
+                <div className="mt-4 flex items-center justify-between text-xs font-semibold text-primary pt-2 border-t border-border/60">
+                  <span>Explore Nearby PGs & Libraries</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {TRUST_POINTS.map((t) => (
-            <div key={t.title} className="rounded-2xl border border-border bg-card p-6">
-              <t.icon className="h-6 w-6 text-primary" />
-              <h3 className="mt-4 text-base font-bold text-foreground">{t.title}</h3>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{t.desc}</p>
+      </section>
+
+      {/* ── TRENDING STUDY ZONES ────────────────────────────────────────────── */}
+      <section className="py-10 border-b border-border bg-background">
+        <div className="mx-auto max-w-7xl px-4 md:px-6 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-amber-600" />
+                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                  Study Zones
+                </Badge>
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mt-1">
+                Trending Study Zones in Indore
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Top student districts with high concentration of 24x7 libraries and hostels
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+            {[
+              {
+                name: "Bhawarkua",
+                slug: "bhawarkua",
+                count: "50+ Libraries & PGs",
+                tag: "Coaching Capital",
+              },
+              {
+                name: "Vijay Nagar",
+                slug: "vijay-nagar",
+                count: "40+ Modern PGs",
+                tag: "Tech & Corporate",
+              },
+              { name: "Palasia", slug: "palasia", count: "35+ Silent Desks", tag: "Central Hub" },
+              {
+                name: "Geeta Bhawan",
+                slug: "geeta-bhawan",
+                count: "25+ Hostels",
+                tag: "Peaceful Zone",
+              },
+            ].map((z) => (
+              <Link
+                key={z.slug}
+                to={`/study-zones/${z.slug}`}
+                className="group rounded-2xl border border-border bg-card p-4 text-center shadow-sm hover:border-primary/50 hover:shadow-md transition-all"
+              >
+                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 group-hover:scale-110 transition-transform">
+                  <Building2 className="h-6 w-6" />
+                </div>
+                <h3 className="font-bold text-foreground text-sm group-hover:text-primary transition-colors">
+                  {z.name}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">{z.count}</p>
+                <span className="mt-2 inline-block rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  {z.tag}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── POPULAR NEAR YOU ─────────────────────────────────────────────────── */}
+      <HomeSection
+        title="Popular Near You"
+        subtitle="Top-rated listings in Vijay Nagar, Palasia & Bhawarkua"
+        badge="Nearby"
+        accentColor="bg-blue-600"
+        isLoading={feedLoading}
+        isEmpty={!feed?.popularNearYou?.length}
+        viewAllHref="/libraries?sort=popular"
+      >
+        {feed?.popularNearYou?.map((rec) => (
+          <RecommendationCard key={rec.id} rec={rec} />
+        ))}
+      </HomeSection>
+
+      {/* ── TRENDING LIBRARIES ───────────────────────────────────────────────── */}
+      <HomeSection
+        title="Trending Study Libraries"
+        subtitle="Most visited libraries in Indore this week"
+        badge="Libraries"
+        accentColor="bg-indigo-600"
+        isLoading={feedLoading}
+        isEmpty={!feed?.trendingLibraries?.length}
+        viewAllHref="/libraries"
+      >
+        {feed?.trendingLibraries?.map((rec) => (
+          <RecommendationCard key={rec.id} rec={rec} />
+        ))}
+      </HomeSection>
+
+      {/* ── TRENDING PROPERTIES ──────────────────────────────────────────────── */}
+      <HomeSection
+        title="Trending PGs & Hostels"
+        subtitle="Most visited accommodations in Indore this week"
+        badge="Properties"
+        accentColor="bg-emerald-600"
+        isLoading={feedLoading}
+        isEmpty={!feed?.trendingProperties?.length}
+        viewAllHref="/accommodations"
+      >
+        {feed?.trendingProperties?.map((rec) => (
+          <RecommendationCard key={rec.id} rec={rec} />
+        ))}
+      </HomeSection>
+
+      {/* ── NEW LISTINGS ─────────────────────────────────────────────────────── */}
+      <HomeSection
+        title="Just Added"
+        subtitle="Fresh listings in the last 7 days"
+        badge="New"
+        accentColor="bg-rose-600"
+        isLoading={feedLoading}
+        isEmpty={!feed?.newListings?.length}
+        viewAllHref="/libraries?sort=newest"
+      >
+        {feed?.newListings?.map((rec) => (
+          <RecommendationCard key={rec.id} rec={rec} />
+        ))}
+      </HomeSection>
+
+      {/* ── BUDGET-FRIENDLY ──────────────────────────────────────────────────── */}
+      <HomeSection
+        title="Budget-Friendly Picks"
+        subtitle="Quality libraries under ₹3,000/month"
+        badge="Budget"
+        accentColor="bg-green-600"
+        isLoading={feedLoading}
+        isEmpty={!feed?.budgetFriendly?.length}
+        viewAllHref="/libraries?maxFee=3000"
+      >
+        {feed?.budgetFriendly?.map((rec) => (
+          <RecommendationCard key={rec.id} rec={rec} />
+        ))}
+      </HomeSection>
+
+      {/* ── PREMIUM PICKS ────────────────────────────────────────────────────── */}
+      <HomeSection
+        title="Premium Picks"
+        subtitle="Top-rated & verified listings"
+        badge="Premium"
+        accentColor="bg-amber-600"
+        isLoading={feedLoading}
+        isEmpty={!feed?.premiumPicks?.length}
+        viewAllHref="/libraries?sort=rating_desc"
+      >
+        {feed?.premiumPicks?.map((rec) => (
+          <RecommendationCard key={rec.id} rec={rec} />
+        ))}
+      </HomeSection>
+
+      {/* ── PREFERENCES PROMO (for unauthenticated / no preferences) ─────────── */}
+      {isAuthenticated && !feed?.hasPreferences && !feedLoading && (
+        <section className="mx-auto max-w-7xl px-4 py-6 md:px-6">
+          <div className="rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 dark:border-violet-800 p-6 md:p-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white">
+                  <Brain className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">
+                    Get Personalized Recommendations
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Tell us your college, budget, and preferred areas. We'll show you listings that
+                    are perfect for you.
+                  </p>
+                </div>
+              </div>
+              <Button asChild className="shrink-0 bg-violet-600 hover:bg-violet-700">
+                <Link to="/dashboard/preferences">
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Set Preferences
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── BROWSE BY CATEGORY ───────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 py-10 md:px-6">
+        <h2 className="text-xl font-bold tracking-tight text-foreground md:text-2xl mb-6">
+          Browse by Category
+        </h2>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {[
+            {
+              icon: BookOpen,
+              label: "Study Libraries",
+              sublabel: "24x7 AC, WiFi, CCTV",
+              href: "/libraries",
+              color: "from-indigo-500 to-indigo-600",
+            },
+            {
+              icon: Building2,
+              label: "PGs & Hostels",
+              sublabel: "Furnished, Meals, AC",
+              href: "/accommodations?type=pg",
+              color: "from-emerald-500 to-emerald-600",
+            },
+            {
+              icon: MapPin,
+              label: "Flats & Rooms",
+              sublabel: "1BHK, 2BHK, Studio",
+              href: "/accommodations?type=flat",
+              color: "from-orange-500 to-orange-600",
+            },
+            {
+              icon: Star,
+              label: "Verified Owners",
+              sublabel: "Background Checked",
+              href: "/libraries?verified=true",
+              color: "from-violet-500 to-violet-600",
+            },
+          ].map(({ icon: Icon, label, sublabel, href, color }) => (
+            <Link
+              key={label}
+              to={href}
+              className="group rounded-2xl border border-border bg-card p-5 hover:border-primary/30 hover:shadow-md transition-all duration-200"
+            >
+              <div
+                className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${color} text-white mb-4 group-hover:scale-110 transition-transform`}
+              >
+                <Icon className="h-6 w-6" />
+              </div>
+              <p className="font-semibold text-foreground text-sm">{label}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{sublabel}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ─────────────────────────────────────────────────────── */}
+      <section className="border-t border-border bg-card/40 py-14">
+        <div className="mx-auto max-w-7xl px-4 md:px-6">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+              How StudentHub Works
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Find your perfect student accommodation or library in 4 simple steps
+            </p>
+          </div>
+          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
+            {HOW_STEPS.map(({ icon: Icon, title, desc }, i) => (
+              <div key={title} className="flex flex-col items-center text-center">
+                <div className="relative">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-4">
+                    <Icon className="h-7 w-7" />
+                  </div>
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
+                    {i + 1}
+                  </span>
+                </div>
+                <h3 className="font-semibold text-foreground">{title}</h3>
+                <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS ─────────────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 py-14 md:px-6">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+            Loved by Students Across Indore
+          </h2>
+        </div>
+        <div className="grid gap-5 md:grid-cols-3">
+          {TESTIMONIALS.map(({ name, role, text, rating }) => (
+            <div
+              key={name}
+              className="rounded-2xl border border-border bg-card p-5 hover:shadow-sm transition-shadow"
+            >
+              <div className="flex gap-0.5 mb-3">
+                {[...Array(rating)].map((_, i) => (
+                  <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                ))}
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed italic">"{text}"</p>
+              <div className="mt-4 flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                  {name[0]}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{name}</p>
+                  <p className="text-xs text-muted-foreground">{role}</p>
+                </div>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section className="bg-card border-y border-border py-16 px-4 md:px-6">
-        <div className="mx-auto max-w-7xl">
-          <div className="mx-auto max-w-2xl text-center">
-            <Badge
-              variant="outline"
-              className="mb-2 bg-emerald-500/10 text-emerald-600 border-emerald-200"
-            >
-              <Users className="mr-1 h-3 w-3" /> Community Feedback
-            </Badge>
-            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-              Loved by Students & Aspirants
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Real stories from students living and studying in Indore.
-            </p>
-          </div>
-
-          <div className="mt-10 grid gap-6 sm:grid-cols-3">
-            {TESTIMONIALS.map((test, i) => (
-              <div
-                key={i}
-                className="rounded-2xl border border-border bg-background p-6 space-y-4 shadow-sm"
-              >
-                <div className="flex items-center gap-1 text-amber-400">
-                  {[...Array(5)].map((_, idx) => (
-                    <Star key={idx} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground italic leading-relaxed">
-                  "{test.text}"
-                </p>
-                <div className="border-t border-border pt-3">
-                  <p className="text-xs font-bold text-foreground">{test.name}</p>
-                  <p className="text-[11px] text-muted-foreground">{test.role}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA FOR PROPERTY & LIBRARY OWNERS */}
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
+      {/* ── CTA FOR PROPERTY & LIBRARY OWNERS ───────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 py-12 md:px-6">
         <div className="overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary/10 via-card to-accent/10 p-8 md:p-12 shadow-sm">
           <div className="grid items-center gap-6 md:grid-cols-[1.5fr_1fr]">
             <div>
@@ -588,7 +635,7 @@ export function HomePage() {
               </h2>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
                 Connect with thousands of verified students and MPPSC/UPSC aspirants relocating to
-                Indore. Zero broker fees, direct lead management.
+                Indore. Zero broker fees, direct lead management with our built-in CRM.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row md:justify-end">

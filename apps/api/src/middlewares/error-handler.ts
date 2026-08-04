@@ -116,11 +116,14 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
   }
 
   const isDev = env.NODE_ENV === "development";
+  const requestId = req.requestId || req.id || "unknown";
 
   res.status(statusCode).json({
     success: false,
+    requestId,
     message,
     errorCode,
+    timestamp: new Date().toISOString(),
     errors: errorsList,
     error: {
       code: errorCode,

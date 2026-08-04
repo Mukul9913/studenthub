@@ -44,7 +44,7 @@ export class LibraryRepository {
     if (filters.status) {
       query.status = filters.status;
     } else {
-      query.status = "published";
+      query.status = { $in: ["APPROVED", "published"] } as unknown as string;
     }
 
     if (filters.city) {

@@ -111,10 +111,16 @@ export function Navbar() {
                 </DropdownMenuItem>
 
                 {user.role === "admin" && (
-                  <DropdownMenuItem onClick={() => navigate("/admin/dashboard")}>
-                    <ShieldCheck className="mr-2 h-4 w-4 text-purple-600" />
-                    <span>Admin Dashboard</span>
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem onClick={() => navigate("/admin/dashboard")}>
+                      <ShieldCheck className="mr-2 h-4 w-4 text-purple-600" />
+                      <span>Admin Dashboard</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/admin/search-analytics")}>
+                      <ShieldCheck className="mr-2 h-4 w-4 text-indigo-600" />
+                      <span>Search Analytics</span>
+                    </DropdownMenuItem>
+                  </>
                 )}
 
                 {user.role === "owner" && (

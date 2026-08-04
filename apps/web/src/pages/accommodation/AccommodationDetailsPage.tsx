@@ -4,8 +4,6 @@ import {
   MapPin,
   ShieldCheck,
   Heart,
-  Phone,
-  Mail,
   Star,
   ArrowLeft,
   Share2,
@@ -19,22 +17,25 @@ import {
   Camera,
   Sofa,
   BookOpen,
+  Copy,
+  Navigation,
+  ExternalLink,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 import { SiteLayout } from "../../components/layout/SiteLayout";
+import { StickyContactCard } from "../../components/common/StickyContactCard";
+import { RecommendationSection } from "../../components/search/RecommendationSection";
+import { ReviewSection } from "@/components/review/ReviewSection";
+import { GoogleMapContainer } from "@/components/maps/GoogleMapContainer";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Separator } from "../../components/ui/separator";
 import { LoadingState } from "../../components/common/LoadingState";
 import { ErrorState } from "../../components/common/ErrorState";
-import { AccommodationCard } from "../../features/accommodation/components/AccommodationCard";
-import { EnquiryModal } from "@/features/enquiry/components/EnquiryModal";
-import {
-  getAccommodationById,
-  getSimilarAccommodations,
-} from "../../features/accommodation/services";
+import { EnquiryModal } from "../../features/enquiry/components/EnquiryModal";
+import { getAccommodationById } from "../../features/accommodation/services";
 import type { Amenity } from "../../features/accommodation/types";
 
 const AMENITY_ICON: Record<Amenity, typeof Wifi> = {
@@ -50,18 +51,11 @@ const AMENITY_ICON: Record<Amenity, typeof Wifi> = {
   "Study Table": BookOpen,
 };
 
-function formatINR(n: number) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(n);
-}
-
 export function AccommodationDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const [activeImage, setActiveImage] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
+  const [visitModalOpen, setVisitModalOpen] = useState(false);
 
   const {
     data: item,
@@ -71,12 +65,6 @@ export function AccommodationDetailsPage() {
   } = useQuery({
     queryKey: ["accommodation", id],
     queryFn: () => getAccommodationById(id!),
-    enabled: !!id,
-  });
-
-  const { data: similar } = useQuery({
-    queryKey: ["similar", id],
-    queryFn: () => getSimilarAccommodations(id!),
     enabled: !!id,
   });
 
@@ -284,98 +272,125 @@ export function AccommodationDetailsPage() {
               </div>
             )}
 
-            <div>
-              <h2 className="text-base font-semibold text-foreground">Location</h2>
-              <div className="mt-3 grid aspect-[16/8] place-items-center overflow-hidden rounded-2xl border border-border bg-muted/40 text-muted-foreground">
-                <div className="text-center">
-                  <MapPin className="mx-auto h-8 w-8 text-primary" />
-                  <p className="mt-2 text-xs font-semibold text-foreground">
-                    {item.location.area}, Indore
-                  </p>
-                  <p className="text-[11px]">Map preview · Full interactive map coming soon</p>
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <h2 className="text-base font-semibold text-foreground">
+                  Location & Accessibility
+                </h2>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 text-xs gap-1.5"
+                    onClick={() => {
+                      const fullAddr = `${item.location.address}, ${item.location.area}, Indore, Madhya Pradesh`;
+                      navigator.clipboard.writeText(fullAddr);
+                      toast.success("Full address copied to clipboard!");
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" /> Copy Address
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 text-xs gap-1.5"
+                    onClick={() => {
+                      if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                          (pos) => {
+                            const url = `https://www.google.com/maps/dir/?api=1&origin=${pos.coords.latitude},${pos.coords.longitude}&destination=${encodeURIComponent(
+                              `${item.location.address}, ${item.location.area}, Indore`,
+                            )}`;
+                            window.open(url, "_blank");
+                          },
+                          () => {
+                            const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                              `${item.location.address}, ${item.location.area}, Indore`,
+                            )}`;
+                            window.open(url, "_blank");
+                          },
+                        );
+                      }
+                    }}
+                  >
+                    <Navigation className="h-3.5 w-3.5 text-primary" /> Current Location
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-8 text-xs gap-1.5"
+                    onClick={() => {
+                      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        `${item.location.address}, ${item.location.area}, Indore`,
+                      )}`;
+                      window.open(url, "_blank");
+                    }}
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" /> Open in Google Maps
+                  </Button>
                 </div>
               </div>
+
+              <GoogleMapContainer
+                center={{ lat: 22.7196, lng: 75.8577 }}
+                zoom={14}
+                markers={[
+                  {
+                    id: item.id,
+                    title: item.title,
+                    latitude: 22.7196,
+                    longitude: 75.8577,
+                    price: item.monthlyRent,
+                    type: "ACCOMMODATION",
+                    address: `${item.location.address}, ${item.location.area}`,
+                  },
+                ]}
+                height="360px"
+              />
             </div>
           </div>
 
           {/* Sidebar */}
           <aside>
-            <div className="sticky top-20 space-y-4">
-              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Monthly Rent
-                  </p>
-                  <p className="text-3xl font-bold text-foreground">
-                    {formatINR(item.monthlyRent)}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Security Deposit: {formatINR(item.securityDeposit)}
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <EnquiryModal
-                    targetType="ACCOMMODATION"
-                    targetId={item.id}
-                    targetTitle={item.title}
-                    targetArea={item.location.area}
-                    targetImage={item.images?.[0]}
-                    triggerText="Contact Owner"
-                    triggerClassName="flex-1 py-5 text-xs font-semibold"
-                  />
-                  <Button variant="outline" size="icon" onClick={toggleSave} aria-label="Save">
-                    <Heart className={`h-4 w-4 ${isSaved ? "fill-rose-600 text-rose-600" : ""}`} />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Verified Property Owner
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary font-bold text-sm">
-                    {item.owner.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-foreground">{item.owner.name}</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      Member since {new Date(item.owner.memberSince).getFullYear()} ·{" "}
-                      {item.owner.totalListings} listings
-                    </p>
-                  </div>
-                </div>
-                <Separator />
-                <div className="space-y-2 text-xs">
-                  <p className="flex items-center gap-2 text-muted-foreground">
-                    <Phone className="h-3.5 w-3.5 text-primary" /> {item.owner.phone}
-                  </p>
-                  <p className="flex items-center gap-2 text-muted-foreground">
-                    <Mail className="h-3.5 w-3.5 text-primary" /> {item.owner.email}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <StickyContactCard
+              listingId={item.id}
+              listingTitle={item.title}
+              targetType="ACCOMMODATION"
+              price={item.monthlyRent}
+              pricingLabel="month"
+              ownerName={item.owner?.name || "Property Owner"}
+              ownerPhone={item.owner?.phone || "9876543210"}
+              isVerified={item.verified}
+              onOpenVisitModal={() => setVisitModalOpen(true)}
+            />
           </aside>
         </div>
 
-        {/* Similar Accommodations */}
-        {similar && similar.length > 0 && (
-          <div className="mt-14 border-t border-border pt-10">
-            <h2 className="text-xl font-bold text-foreground">
-              Similar Accommodations in {item.location.area}
-            </h2>
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {similar.map((a) => (
-                <AccommodationCard key={a.id} item={a} />
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Student Reviews & Trust Ratings */}
+        <ReviewSection
+          targetType="ACCOMMODATION"
+          targetId={item.id}
+          targetTitle={item.title}
+          ownerId={item.owner?.id || ""}
+        />
+
+        {/* Unified Search Recommendations */}
+        <div className="mt-14">
+          <RecommendationSection
+            targetType="ACCOMMODATION"
+            targetId={item.id}
+            title={`More Accommodations & Libraries in ${item.location.area}`}
+          />
+        </div>
+
+        {/* Enquiry / Visit Modal */}
+        <EnquiryModal
+          open={visitModalOpen}
+          onOpenChange={setVisitModalOpen}
+          targetType="ACCOMMODATION"
+          targetId={item.id}
+          targetTitle={item.title}
+          targetArea={item.location.area}
+        />
       </div>
     </SiteLayout>
   );
