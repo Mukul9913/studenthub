@@ -97,7 +97,7 @@ export function AdminLayout({
         </aside>
 
         {/* Page Content */}
-        <main className="space-y-6">
+        <main className="space-y-6 min-w-0">
           {title && (
             <div className="border-b border-border pb-4">
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>

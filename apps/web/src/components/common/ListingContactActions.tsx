@@ -8,6 +8,8 @@ import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 
+import { fetchApi } from "../../services/api";
+
 interface ListingContactActionsProps {
   targetType: "ACCOMMODATION" | "LIBRARY" | "PG" | "HOSTEL";
   targetId: string;
@@ -43,16 +45,17 @@ export function ListingContactActions({
 
   const handleCall = () => {
     // Record Call Event
-    fetch("/api/leads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        targetType,
-        targetId,
-        source: "CALL_CLICK",
-        message: `Phone call initiated for ${title}`,
-      }),
-    }).catch(() => {});
+    if (user) {
+      fetchApi("/leads", {
+        method: "POST",
+        data: {
+          targetType,
+          targetId,
+          source: "CALL_CLICK",
+          message: `Phone call initiated for ${title}`,
+        },
+      }).catch(() => {});
+    }
 
     window.location.href = `tel:${cleanPhone}`;
   };
@@ -62,16 +65,17 @@ export function ListingContactActions({
       `Hi ${ownerName}, I found your listing "${title}" on StudentHub and would like to inquire about a visit.`,
     );
 
-    fetch("/api/leads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        targetType,
-        targetId,
-        source: "WHATSAPP_CLICK",
-        message: `WhatsApp chat initiated for ${title}`,
-      }),
-    }).catch(() => {});
+    if (user) {
+      fetchApi("/leads", {
+        method: "POST",
+        data: {
+          targetType,
+          targetId,
+          source: "WHATSAPP_CLICK",
+          message: `WhatsApp chat initiated for ${title}`,
+        },
+      }).catch(() => {});
+    }
 
     window.open(`https://wa.me/91${cleanPhone}?text=${text}`, "_blank");
   };
@@ -109,13 +113,9 @@ export function ListingContactActions({
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/leads", {
+      await fetchApi("/leads", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-        },
-        body: JSON.stringify({
+        data: {
           targetType,
           targetId,
           preferredDate: preferredDate || undefined,
@@ -123,18 +123,14 @@ export function ListingContactActions({
           message,
           contactPhone,
           source: "VISIT_REQUEST",
-        }),
+        },
       });
 
-      const data = await response.json();
-      if (response.ok && data.success !== false) {
-        toast.success("Visit request submitted successfully! The owner will contact you shortly.");
-        setIsModalOpen(false);
-      } else {
-        toast.error(data.message || data.error?.message || "Failed to send visit request.");
-      }
-    } catch {
-      toast.error("Network error. Please try again.");
+      toast.success("Visit request submitted successfully! The owner will contact you shortly.");
+      setIsModalOpen(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to send visit request.";
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

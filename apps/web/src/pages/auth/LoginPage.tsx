@@ -123,8 +123,8 @@ export function LoginPage() {
             {error}
           </p>
         )}
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Logging in…" : "Log in"}
+        <Button type="submit" className="w-full" isLoading={isLoading} loadingText="Signing in…">
+          Log in
         </Button>
       </form>
     </AuthShell>

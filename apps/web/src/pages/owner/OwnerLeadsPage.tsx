@@ -34,6 +34,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { fetchApi } from "@/services/api";
+
 interface LeadItem {
   id: string;
   targetType: string;
@@ -64,7 +66,20 @@ interface TimelineItem {
   createdAt: string;
 }
 
+interface OwnerAnalytics {
+  totalLeads: number;
+  todayLeads: number;
+  pendingLeads: number;
+  acceptedLeads: number;
+  rejectedLeads: number;
+  visitedLeads: number;
+  convertedLeads: number;
+  cancelledLeads: number;
+  conversionRate: number;
+}
+
 export function OwnerLeadsPage() {
+  const queryClient = useQueryClient();
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
   const [rescheduleLeadId, setRescheduleLeadId] = useState<string | null>(null);
   const [rescheduleDate, setRescheduleDate] = useState("");
@@ -75,18 +90,11 @@ export function OwnerLeadsPage() {
 
   const [timelineLeadId, setTimelineLeadId] = useState<string | null>(null);
 
-  const queryClient = useQueryClient();
-
   // 1. Fetch Owner Analytics
   const { data: analytics } = useQuery({
     queryKey: ["owner-leads-analytics"],
     queryFn: async () => {
-      const token = localStorage.getItem("token") || "";
-      const res = await fetch("/api/leads/owner/analytics", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const json = await res.json();
-      return json.data;
+      return fetchApi<OwnerAnalytics>("/leads/owner/analytics");
     },
   });
 
@@ -99,13 +107,9 @@ export function OwnerLeadsPage() {
   } = useQuery({
     queryKey: ["owner-leads", selectedStatus],
     queryFn: async () => {
-      const token = localStorage.getItem("token") || "";
       const statusParam = selectedStatus !== "ALL" ? `?status=${selectedStatus}` : "";
-      const res = await fetch(`/api/leads/owner${statusParam}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const json = await res.json();
-      return json.data || [];
+      const res = await fetchApi<LeadItem[]>(`/leads/owner${statusParam}`);
+      return res || [];
     },
   });
 
@@ -124,20 +128,10 @@ export function OwnerLeadsPage() {
       preferredTime?: string;
       notes?: string;
     }) => {
-      const token = localStorage.getItem("token") || "";
-      const res = await fetch(`/api/leads/${leadId}/status`, {
+      return fetchApi(`/leads/${leadId}/status`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status, preferredDate, preferredTime, notes }),
+        data: { status, preferredDate, preferredTime, notes },
       });
-      const json = await res.json();
-      if (!res.ok || json.success === false) {
-        throw new Error(json.message || json.error?.message || "Failed to update lead status");
-      }
-      return json.data;
     },
     onSuccess: () => {
       toast.success("Lead status updated successfully!");
@@ -153,20 +147,10 @@ export function OwnerLeadsPage() {
   // 4. Follow-up Note Mutation
   const addFollowUpMutation = useMutation({
     mutationFn: async ({ leadId, note }: { leadId: string; note: string }) => {
-      const token = localStorage.getItem("token") || "";
-      const res = await fetch(`/api/leads/${leadId}/followups`, {
+      return fetchApi(`/leads/${leadId}/followups`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ note, contactChannel: "CALL" }),
+        data: { note, contactChannel: "CALL" },
       });
-      const json = await res.json();
-      if (!res.ok || json.success === false) {
-        throw new Error(json.message || json.error?.message || "Failed to add follow-up note");
-      }
-      return json.data;
     },
     onSuccess: () => {
       toast.success("Follow-up note saved!");

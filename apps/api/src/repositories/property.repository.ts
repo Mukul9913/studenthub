@@ -68,6 +68,9 @@ export class PropertyRepository {
     status?: string;
     textQuery?: string;
     propertyIds?: string[];
+    lat?: number;
+    lng?: number;
+    radius?: number;
     skip: number;
     limit: number;
     sortBy: string;
@@ -84,15 +87,39 @@ export class PropertyRepository {
       const cleanArea = filters.area.trim().replace(/n$/i, "");
       match.area = { $regex: new RegExp(cleanArea, "i") };
     }
-    if (filters.type) match.propertyType = filters.type;
-    if (filters.textQuery) match.$text = { $search: filters.textQuery };
+    if (filters.type && filters.type !== "all") match.propertyType = filters.type;
+    if (filters.textQuery) {
+      match.$or = [
+        { title: { $regex: new RegExp(filters.textQuery, "i") } },
+        { description: { $regex: new RegExp(filters.textQuery, "i") } },
+        { area: { $regex: new RegExp(filters.textQuery, "i") } },
+        { "location.address": { $regex: new RegExp(filters.textQuery, "i") } },
+      ];
+    }
     if (filters.propertyIds) {
       match._id = {
         $in: filters.propertyIds.map((id) => new mongoose.Types.ObjectId(id)),
       };
     }
 
-    const pipeline: PipelineStage[] = [{ $match: match }];
+    const pipeline: PipelineStage[] = [];
+
+    if (filters.lat !== undefined && filters.lng !== undefined) {
+      pipeline.push({
+        $geoNear: {
+          near: {
+            type: "Point",
+            coordinates: [filters.lng, filters.lat],
+          },
+          distanceField: "distanceMeters",
+          maxDistance: filters.radius || 10000,
+          query: match,
+          spherical: true,
+        },
+      } as PipelineStage);
+    } else {
+      pipeline.push({ $match: match });
+    }
 
     if (filters.sortBy === "rent-asc" || filters.sortBy === "rent-desc") {
       pipeline.push({
@@ -125,6 +152,12 @@ export class PropertyRepository {
       pipeline.push({
         $sort: { minRent: filters.sortBy === "rent-asc" ? 1 : -1 },
       });
+    } else if (
+      filters.sortBy === "nearest" &&
+      filters.lat !== undefined &&
+      filters.lng !== undefined
+    ) {
+      pipeline.push({ $sort: { distanceMeters: 1 } });
     } else {
       let sortField = "createdAt";
       let sortDir: 1 | -1 = -1;
