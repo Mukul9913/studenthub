@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import type { AccommodationService } from "../services/accommodation.service.js";
 import { CloudinaryService } from "../services/cloudinary.service.js";
 import { UnauthorizedError, BadRequestError } from "../errors/index.js";
+import { ListingQuerySchema } from "../schemas/listing-query.schema.js";
 
 export class AccommodationController {
   private cloudinaryService = new CloudinaryService();
@@ -141,28 +142,22 @@ export class AccommodationController {
   };
 
   list = async (req: Request, res: Response): Promise<void> => {
-    const {
-      area,
-      propertyType,
-      genderPreference,
-      minRent,
-      maxRent,
-      page,
-      limit,
-      sortBy,
-      sortOrder,
-    } = req.query;
+    const parsedQuery = ListingQuerySchema.parse(req.query);
 
     const result = await this.accommodationService.listAccommodations({
-      area: area ? String(area) : undefined,
-      propertyType: propertyType ? String(propertyType) : undefined,
-      genderPreference: genderPreference ? String(genderPreference) : undefined,
-      minRent: minRent ? Number(minRent) : undefined,
-      maxRent: maxRent ? Number(maxRent) : undefined,
-      page: page ? Number(page) : undefined,
-      limit: limit ? Number(limit) : undefined,
-      sortBy: sortBy ? String(sortBy) : undefined,
-      sortOrder: sortOrder ? (String(sortOrder) as "asc" | "desc") : undefined,
+      textQuery: parsedQuery.q,
+      city: parsedQuery.city,
+      area: parsedQuery.area,
+      propertyType: parsedQuery.propertyType,
+      genderPreference: parsedQuery.genderPreference,
+      minRent: parsedQuery.minRent,
+      maxRent: parsedQuery.maxRent,
+      lat: parsedQuery.lat,
+      lng: parsedQuery.lng,
+      radius: parsedQuery.radius,
+      page: parsedQuery.page,
+      limit: parsedQuery.limit,
+      sortBy: parsedQuery.sortBy,
     });
 
     res.status(200).json({

@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingState } from "@/components/common/LoadingState";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
+import { fetchApi } from "@/services/api";
+
 interface UserLeadItem {
   id: string;
   targetType: string;
@@ -33,24 +35,17 @@ export function UserEnquiriesPage() {
   } = useQuery({
     queryKey: ["my-leads-and-enquiries"],
     queryFn: async () => {
-      const token = localStorage.getItem("token") || "";
       try {
-        const res = await fetch("/api/leads/my", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const json = await res.json();
-        if (json.data && Array.isArray(json.data) && json.data.length > 0) {
-          return json.data;
+        const data = await fetchApi<UserLeadItem[]>("/leads/my");
+        if (data && Array.isArray(data) && data.length > 0) {
+          return data;
         }
       } catch {
         // Fallback
       }
 
-      const res = await fetch("/api/enquiries/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const json = await res.json();
-      return json.data || [];
+      const data = await fetchApi<UserLeadItem[]>("/enquiries/me");
+      return data || [];
     },
   });
 

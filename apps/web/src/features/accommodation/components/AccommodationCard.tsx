@@ -25,8 +25,8 @@ const STATUS_STYLES: Record<Accommodation["availabilityStatus"], string> = {
 
 export function AccommodationCard({ item }: { item: Accommodation }) {
   return (
-    <article className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition hover:shadow-lg hover:shadow-primary/5">
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+    <article className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition duration-200 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5">
+      <div className="relative aspect-[16/10] overflow-hidden bg-muted">
         <img
           src={item.images[0]}
           alt={item.title}

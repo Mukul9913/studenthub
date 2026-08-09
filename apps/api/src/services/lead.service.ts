@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { NotFoundError, ForbiddenError, BadRequestError, ConflictError } from "../errors/index.js";
+import { NotFoundError, ForbiddenError, BadRequestError } from "../errors/index.js";
 import type { ILead } from "../models/lead.model.js";
 import type { LeadRepository, LeadFilters } from "../repositories/lead.repository.js";
 import type { PropertyRepository } from "../repositories/property.repository.js";
@@ -117,10 +117,13 @@ export class LeadService {
       targetId,
     );
     if (existingActive) {
-      throw new ConflictError(
-        "You already have an active visit request or enquiry for this listing.",
-        "DUPLICATE_ACTIVE_LEAD",
-      );
+      if (message || preferredDate || preferredTime) {
+        if (message) existingActive.message = message;
+        if (preferredDate) existingActive.preferredDate = new Date(preferredDate);
+        if (preferredTime) existingActive.preferredTime = preferredTime;
+        await existingActive.save();
+      }
+      return existingActive;
     }
 
     const lead = await this.leadRepository.create({

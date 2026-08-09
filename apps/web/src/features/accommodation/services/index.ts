@@ -144,6 +144,7 @@ export async function getAccommodations(
 ): Promise<PaginatedAccommodations> {
   const params = new URLSearchParams();
   if (filters) {
+    if (filters.query && filters.query.trim()) params.append("q", filters.query.trim());
     if (filters.area && filters.area !== "all") params.append("area", filters.area);
     if (filters.propertyType && filters.propertyType !== "all") {
       const backendType =
@@ -162,7 +163,6 @@ export async function getAccommodations(
     if (filters.limit) params.append("limit", filters.limit.toString());
     if (filters.sort) {
       params.append("sortBy", filters.sort);
-      params.append("sortOrder", "desc");
     }
   }
   const queryString = params.toString();

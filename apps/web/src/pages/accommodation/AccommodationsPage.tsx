@@ -28,7 +28,7 @@ import { getAccommodations } from "../../features/accommodation/services";
 import { INDORE_AREAS } from "../../features/accommodation/mock-data/areas";
 import { AccommodationGrid } from "../../features/accommodation/components/AccommodationGrid";
 import { AccommodationPagination } from "../../features/accommodation/components/AccommodationPagination";
-import { LoadingState } from "../../components/common/LoadingState";
+import { ListingCardSkeleton } from "@/components/common/Skeletons";
 import { EmptyState } from "../../components/common/EmptyState";
 import { ErrorState } from "../../components/common/ErrorState";
 import type { Amenity, GenderPreference, PropertyType } from "../../features/accommodation/types";
@@ -46,6 +46,8 @@ const AMENITIES: Amenity[] = [
   "Study Table",
 ];
 
+import { useDebounce } from "@/hooks/useDebounce";
+
 type SortValue = "recommended" | "rent-asc" | "rent-desc" | "recent";
 
 export function AccommodationsPage() {
@@ -56,7 +58,7 @@ export function AccommodationsPage() {
   const urlPage = searchParams.get("page");
 
   const [queryInput, setQueryInput] = useState(initialQ);
-  const [debouncedQuery, setDebouncedQuery] = useState(initialQ);
+  const debouncedQuery = useDebounce(queryInput, 350);
   const [selectedArea, setSelectedArea] = useState<string>(urlArea ?? "all");
   const [selectedCoaching, setSelectedCoaching] = useState<string>("all");
   const [selectedCollege, setSelectedCollege] = useState<string>("all");
@@ -68,14 +70,6 @@ export function AccommodationsPage() {
   const [amenities, setAmenities] = useState<Amenity[]>([]);
   const [sort, setSort] = useState<SortValue | "nearest">(urlSort ?? "recommended");
   const [page, setPage] = useState<number>(urlPage ? Number(urlPage) : 1);
-
-  // Debounce search query input (300ms)
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedQuery(queryInput);
-    }, 300);
-    return () => clearTimeout(handler);
-  }, [queryInput]);
 
   // Set document title for SEO
   useEffect(() => {
@@ -99,11 +93,30 @@ export function AccommodationsPage() {
   // Reset page to 1 when filters change
   useEffect(() => {
     setPage(1);
-  }, [debouncedQuery, selectedArea, propertyType, gender, minRent, maxRent, amenities, sort]);
+  }, [
+    debouncedQuery,
+    selectedArea,
+    selectedCoaching,
+    selectedCollege,
+    radiusKm,
+    propertyType,
+    gender,
+    minRent,
+    maxRent,
+    amenities,
+    sort,
+  ]);
+
+  const combinedSearchQuery = useMemo(() => {
+    const parts = [debouncedQuery];
+    if (selectedCoaching !== "all") parts.push(selectedCoaching);
+    if (selectedCollege !== "all") parts.push(selectedCollege);
+    return parts.filter(Boolean).join(" ");
+  }, [debouncedQuery, selectedCoaching, selectedCollege]);
 
   const filters = useMemo(
     () => ({
-      query: debouncedQuery,
+      query: combinedSearchQuery,
       area: selectedArea,
       propertyType,
       genderPreference: gender,
@@ -114,7 +127,17 @@ export function AccommodationsPage() {
       page,
       limit: 9,
     }),
-    [debouncedQuery, selectedArea, propertyType, gender, minRent, maxRent, amenities, sort, page],
+    [
+      combinedSearchQuery,
+      selectedArea,
+      propertyType,
+      gender,
+      minRent,
+      maxRent,
+      amenities,
+      sort,
+      page,
+    ],
   );
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -124,8 +147,10 @@ export function AccommodationsPage() {
 
   const clearFilters = () => {
     setQueryInput("");
-    setDebouncedQuery("");
     setSelectedArea("all");
+    setSelectedCoaching("all");
+    setSelectedCollege("all");
+    setRadiusKm("all");
     setPropertyType("all");
     setGender("all");
     setMinRent("");
@@ -334,7 +359,6 @@ export function AccommodationsPage() {
                 <button
                   onClick={() => {
                     setQueryInput("");
-                    setDebouncedQuery("");
                   }}
                   className="text-muted-foreground hover:text-foreground"
                 >
@@ -386,7 +410,11 @@ export function AccommodationsPage() {
           </aside>
           <div>
             {isLoading ? (
-              <LoadingState />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, idx) => (
+                  <ListingCardSkeleton key={idx} />
+                ))}
+              </div>
             ) : isError ? (
               <ErrorState onRetry={() => refetch()} />
             ) : !data || data.items.length === 0 ? (

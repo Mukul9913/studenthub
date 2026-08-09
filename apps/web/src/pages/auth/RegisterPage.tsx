@@ -241,8 +241,13 @@ export function RegisterPage() {
             {serverError}
           </p>
         )}
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Creating account…" : "Create account"}
+        <Button
+          type="submit"
+          className="w-full"
+          isLoading={isLoading}
+          loadingText="Creating account…"
+        >
+          Create account
         </Button>
       </form>
     </AuthShell>

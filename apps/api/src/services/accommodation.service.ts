@@ -142,11 +142,16 @@ export class AccommodationService {
   }
 
   async listAccommodations(filters: {
+    textQuery?: string;
+    city?: string;
     area?: string;
     propertyType?: string;
     genderPreference?: string;
     minRent?: number;
     maxRent?: number;
+    lat?: number;
+    lng?: number;
+    radius?: number;
     status?: string;
     page?: number;
     limit?: number;
@@ -160,14 +165,19 @@ export class AccommodationService {
     totalPages: number;
   }> {
     const {
-      minRent,
-      maxRent,
-      genderPreference,
+      textQuery,
+      city = "indore",
       area,
       propertyType,
+      genderPreference,
+      minRent,
+      maxRent,
+      lat,
+      lng,
+      radius,
       status,
       page = 1,
-      limit = 10,
+      limit = 12,
       sortBy = "recommended",
       sortOrder = "desc",
     } = filters;
@@ -193,11 +203,15 @@ export class AccommodationService {
     }
 
     const { items, total } = await this.propertyRepository.searchPaginated({
-      city: "indore",
+      city,
       area,
       type: propertyType,
       status,
+      textQuery,
       propertyIds,
+      lat,
+      lng,
+      radius,
       skip,
       limit,
       sortBy,

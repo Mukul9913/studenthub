@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LoadingState } from "@/components/common/LoadingState";
+import { ListingCardSkeleton } from "@/components/common/Skeletons";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 
@@ -372,7 +372,11 @@ export function LibrariesPage() {
         {/* Results Section */}
         <section className="mx-auto max-w-7xl px-4 py-8 md:px-6">
           {isLoading ? (
-            <LoadingState />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <ListingCardSkeleton key={idx} />
+              ))}
+            </div>
           ) : isError ? (
             <ErrorState onRetry={() => refetch()} />
           ) : data?.items.length === 0 ? (
