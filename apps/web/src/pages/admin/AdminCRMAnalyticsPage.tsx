@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, Users, Crown, Loader2, BarChart3 } from "lucide-react";
 import { SEOHead } from "../../components/seo/SEOHead";
+import { AdminLayout } from "@/components/layout/AdminLayout";
 import { getAdminCRMAnalytics } from "@/services/crm";
 
 function KpiCard({
@@ -20,7 +21,7 @@ function KpiCard({
     <div className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs text-muted-foreground uppercase tracking-wide">{label}</p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
           <p className={`mt-1 text-2xl font-bold ${color}`}>{value}</p>
           {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
         </div>
@@ -46,21 +47,21 @@ function BarList({
   const max = Math.max(...data.map((d) => Number(d[valueKey])), 1);
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
-      <h3 className="font-semibold text-foreground mb-4 text-sm">{label}</h3>
+      <h3 className="mb-4 text-sm font-semibold text-foreground">{label}</h3>
       <div className="space-y-3">
         {data.slice(0, 8).map((item, i) => {
           const pct = Math.round((Number(item[valueKey]) / max) * 100);
           return (
             <div key={i}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-muted-foreground truncate max-w-[160px]">
+              <div className="mb-1 flex items-center justify-between">
+                <span className="max-w-[160px] truncate text-xs text-muted-foreground">
                   {i + 1}. {String(item[labelKey])}
                 </span>
-                <span className="text-xs font-semibold text-foreground ml-2">
+                <span className="ml-2 text-xs font-semibold text-foreground">
                   {Number(item[valueKey]).toLocaleString("en-IN")}
                 </span>
               </div>
-              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full rounded-full bg-primary transition-all duration-700"
                   style={{ width: `${pct}%` }}
@@ -70,7 +71,7 @@ function BarList({
           );
         })}
         {data.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-4">No data available</p>
+          <p className="py-4 text-center text-sm text-muted-foreground">No data available</p>
         )}
       </div>
     </div>
@@ -90,15 +91,10 @@ export function AdminCRMAnalyticsPage() {
         description="Platform-wide CRM and lead conversion analytics."
       />
 
-      <div className="p-6 space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Platform CRM Analytics</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Lead performance, conversion rates, and owner leaderboard across StudentHub
-          </p>
-        </div>
-
+      <AdminLayout
+        title="CRM Analytics"
+        subtitle="Lead performance, conversion rates, and owner leaderboard across StudentHub."
+      >
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -108,7 +104,7 @@ export function AdminCRMAnalyticsPage() {
         ) : (
           <>
             {/* KPIs */}
-            <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
               <KpiCard
                 icon={Users}
                 label="Total Leads"
@@ -124,13 +120,13 @@ export function AdminCRMAnalyticsPage() {
                 icon={BarChart3}
                 label="Platform CVR"
                 value={`${data.platformConversionRate}%`}
-                color="text-violet-600"
+                color="text-primary"
               />
             </div>
 
             {/* Top Owners Leaderboard */}
-            <div className="rounded-2xl border border-border bg-card overflow-hidden">
-              <div className="border-b border-border px-5 py-4 flex items-center gap-2">
+            <div className="overflow-hidden rounded-2xl border border-border bg-card">
+              <div className="flex items-center gap-2 border-b border-border px-5 py-4">
                 <Crown className="h-5 w-5 text-amber-500" />
                 <h3 className="font-semibold text-foreground">Top Owners by Conversion Rate</h3>
               </div>
@@ -157,15 +153,15 @@ export function AdminCRMAnalyticsPage() {
                   </thead>
                   <tbody className="divide-y divide-border">
                     {data.topOwnersByConversion.map((owner, i) => (
-                      <tr key={owner.ownerId} className="hover:bg-muted/20 transition-colors">
+                      <tr key={owner.ownerId} className="transition-colors hover:bg-muted/20">
                         <td className="px-4 py-3 text-xs text-muted-foreground">
-                          {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
+                          {i === 0 ? "1st" : i === 1 ? "2nd" : i === 2 ? "3rd" : `#${i + 1}`}
                         </td>
                         <td className="px-4 py-3 font-medium text-foreground">{owner.ownerName}</td>
                         <td className="px-4 py-3 text-right text-xs text-muted-foreground">
                           {owner.totalLeads}
                         </td>
-                        <td className="px-4 py-3 text-right text-xs text-emerald-600 font-medium">
+                        <td className="px-4 py-3 text-right text-xs font-medium text-emerald-600">
                           {owner.converted}
                         </td>
                         <td className="px-4 py-3 text-right">
@@ -204,18 +200,18 @@ export function AdminCRMAnalyticsPage() {
                 data={data.popularColleges as unknown as Record<string, string | number>[]}
                 labelKey="college"
                 valueKey="count"
-                label="🎓 Top Colleges (Students)"
+                label="Top Colleges (Students)"
               />
               <BarList
                 data={data.highestConversionAreas as unknown as Record<string, string | number>[]}
                 labelKey="area"
                 valueKey="leads"
-                label="📍 Highest Lead Areas"
+                label="Highest Lead Areas"
               />
             </div>
           </>
         )}
-      </div>
+      </AdminLayout>
     </>
   );
 }

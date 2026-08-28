@@ -84,6 +84,12 @@ function mapPropertyToAccommodation(p: PropertyWithRooms): Accommodation {
       city: p.location?.city || "",
       state: p.location?.state || "",
       pincode: p.location?.zipCode || "",
+      lat:
+        (p.location as { latitude?: number } | undefined)?.latitude ??
+        p.location?.coordinates?.coordinates?.[1],
+      lng:
+        (p.location as { longitude?: number } | undefined)?.longitude ??
+        p.location?.coordinates?.coordinates?.[0],
     },
     amenities: (p.amenities || []) as Accommodation["amenities"],
     images:

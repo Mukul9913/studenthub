@@ -2,9 +2,9 @@ import { z } from "zod";
 
 export const createEnquirySchema = {
   body: z.object({
-    targetType: z.enum(["ACCOMMODATION", "LIBRARY"], {
+    targetType: z.enum(["ACCOMMODATION", "LIBRARY", "MESS"], {
       required_error: "targetType is required",
-      invalid_type_error: "targetType must be ACCOMMODATION or LIBRARY",
+      invalid_type_error: "targetType must be ACCOMMODATION, LIBRARY or MESS",
     }),
     targetId: z
       .string({ required_error: "targetId is required" })

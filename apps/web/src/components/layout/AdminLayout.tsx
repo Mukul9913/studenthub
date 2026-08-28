@@ -1,19 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
-import {
-  ShieldCheck,
-  LayoutDashboard,
-  Building2,
-  Users,
-  Briefcase,
-  MessageSquare,
-  ArrowLeft,
-  TrendingUp,
-  Crown,
-  Star,
-} from "lucide-react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
+
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ADMIN_NAV } from "@/config/navigation";
+import { cn } from "@/lib/utils";
 
 export function AdminLayout({
   children,
@@ -27,68 +20,51 @@ export function AdminLayout({
   const location = useLocation();
   const currentPath = location.pathname;
 
-  const links = [
-    { to: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
-    { to: "/admin/monetization", label: "Monetization & Plans", icon: Crown },
-    { to: "/admin/reviews", label: "Review Moderation", icon: Star },
-    { to: "/admin/moderation", label: "Listing Moderation", icon: ShieldCheck },
-    { to: "/admin/search-analytics", label: "Search Telemetry", icon: TrendingUp },
-    { to: "/admin/listings", label: "Listings", icon: Building2 },
-    { to: "/admin/users", label: "Users", icon: Users },
-    { to: "/admin/owners", label: "Business Owners", icon: Briefcase },
-    { to: "/admin/enquiries", label: "Enquiries", icon: MessageSquare },
-  ];
-
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Top Admin Navigation Header */}
-      <header className="border-b border-border bg-card/80 backdrop-blur sticky top-0 z-40">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+      <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <Link to="/admin/dashboard" className="flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-purple-600 text-white shadow-sm">
-                <ShieldCheck className="h-5 w-5" />
-              </span>
-              <span className="font-bold tracking-tight text-lg">StudentHub</span>
-            </Link>
-            <Badge className="bg-purple-500/10 text-purple-600 border-purple-200 hover:bg-purple-500/20 gap-1 text-xs">
-              <ShieldCheck className="h-3 w-3" /> Control Panel
+            <BrandLogo to="/admin/dashboard" size="sm" />
+            <Badge variant="secondary" className="gap-1 text-xs text-primary">
+              <ShieldCheck className="h-3 w-3" aria-hidden />
+              Control Panel
             </Badge>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="ghost" asChild className="gap-1.5 text-xs">
-              <Link to="/">
-                <ArrowLeft className="h-3.5 w-3.5" /> Back to App
-              </Link>
-            </Button>
-          </div>
+          <Button size="sm" variant="ghost" asChild className="gap-1.5">
+            <Link to="/">
+              <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+              Back to App
+            </Link>
+          </Button>
         </div>
       </header>
 
-      {/* Main Admin Content Layout */}
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[240px_1fr]">
-        {/* Sidebar Navigation */}
-        <aside className="lg:sticky lg:top-24 lg:h-fit">
-          <nav className="flex gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-2.5 shadow-sm lg:flex-col">
-            <div className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider hidden lg:block">
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[220px_1fr]">
+        <aside className="lg:sticky lg:top-20 lg:h-fit">
+          <nav
+            aria-label="Admin"
+            className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-card p-2 lg:flex-col"
+          >
+            <div className="hidden px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground lg:block">
               Administration
             </div>
-            {links.map((l) => {
+            {ADMIN_NAV.map((l) => {
               const isActive =
-                currentPath === l.to ||
-                (l.to !== "/admin/dashboard" && currentPath.startsWith(l.to));
+                currentPath === l.href ||
+                (l.href !== "/admin/dashboard" && currentPath.startsWith(l.href));
               return (
                 <Link
-                  key={l.to}
-                  to={l.to}
-                  className={`flex shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
+                  key={l.href}
+                  to={l.href}
+                  className={cn(
+                    "flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-purple-600 text-white shadow-sm"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
                 >
-                  <l.icon className="h-4 w-4" />
+                  <l.icon className="h-4 w-4" aria-hidden />
                   <span>{l.label}</span>
                 </Link>
               );
@@ -96,12 +72,11 @@ export function AdminLayout({
           </nav>
         </aside>
 
-        {/* Page Content */}
-        <main className="space-y-6 min-w-0">
+        <main className="min-w-0 space-y-6">
           {title && (
             <div className="border-b border-border pb-4">
-              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
-              {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+              <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
+              {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
             </div>
           )}
           {children}

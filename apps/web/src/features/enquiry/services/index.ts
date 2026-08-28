@@ -2,9 +2,18 @@ import { fetchApi } from "@/services/api";
 import type { Enquiry, EnquiryStatus } from "@studenthub/types";
 import type { CreateEnquiryInput } from "../types";
 
+/**
+ * Creates a lead via `/leads` (DIRECT_ENQUIRY) so owner + admin CRM
+ * dashboards see the enquiry. Legacy `/enquiries` is no longer the write path.
+ */
 export async function createEnquiry(payload: CreateEnquiryInput): Promise<Enquiry> {
-  return fetchApi<Enquiry>("/enquiries", {
-    data: payload,
+  return fetchApi<Enquiry>("/leads", {
+    data: {
+      targetType: payload.targetType,
+      targetId: payload.targetId,
+      message: payload.message,
+      source: "DIRECT_ENQUIRY",
+    },
   });
 }
 

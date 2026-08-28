@@ -16,7 +16,7 @@ export class EnquiryRepository {
 
   async findActiveUserEnquiryForTarget(
     userId: string,
-    targetType: "ACCOMMODATION" | "LIBRARY",
+    targetType: "ACCOMMODATION" | "LIBRARY" | "MESS",
     targetId: string,
   ): Promise<IEnquiry | null> {
     return await EnquiryModel.findOne({

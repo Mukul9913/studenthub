@@ -70,7 +70,7 @@ export function PlacesAutocomplete({
   const getIcon = (type: AreaSuggestionDTO["type"]) => {
     switch (type) {
       case "EDUCATION_CENTER":
-        return <GraduationCap className="h-4 w-4 text-violet-600 shrink-0" />;
+        return <GraduationCap className="h-4 w-4 text-primary shrink-0" />;
       case "STUDY_ZONE":
         return <Building2 className="h-4 w-4 text-amber-600 shrink-0" />;
       default:

@@ -2,6 +2,7 @@
 import { UserModel } from "../models/user.model.js";
 import { PropertyModel } from "../models/property.model.js";
 import { LibraryModel } from "../models/library.model.js";
+import { MessModel } from "../models/mess.model.js";
 import { EnquiryModel } from "../models/enquiry.model.js";
 import { NotFoundError, BadRequestError } from "../errors/index.js";
 
@@ -62,7 +63,7 @@ export interface AdminListingItem {
     ownerType?: string;
   };
   area: string;
-  status: "draft" | "pending_review" | "published" | "rejected" | "suspended";
+  status: string;
   rejectionReason?: string;
   createdAt: string;
   updatedAt: string;
@@ -215,27 +216,41 @@ export class AdminService {
     const includeAcc =
       !filters.domain || filters.domain === "all" || filters.domain === "accommodation";
     const includeLib = !filters.domain || filters.domain === "all" || filters.domain === "library";
+    const includeMess = !filters.domain || filters.domain === "all" || filters.domain === "mess";
 
     let accItems: any[] = [];
     let libItems: any[] = [];
+    let messItems: any[] = [];
 
     const accFilter: Record<string, unknown> = {};
     const libFilter: Record<string, unknown> = {};
+    const messFilter: Record<string, unknown> = {};
 
     if (filters.status && filters.status !== "all") {
       accFilter.status = filters.status;
       libFilter.status = filters.status;
+      messFilter.status = filters.status;
+      // Mess stores uppercase statuses; also match common aliases
+      if (filters.status === "pending_review") {
+        messFilter.status = { $in: ["pending_review", "PENDING_REVIEW"] };
+      } else if (filters.status === "published") {
+        messFilter.status = { $in: ["published", "PUBLISHED", "APPROVED", "approved"] };
+      } else if (filters.status === "rejected") {
+        messFilter.status = { $in: ["rejected", "REJECTED"] };
+      }
     }
 
     if (filters.area && filters.area !== "all") {
       accFilter.area = filters.area;
       libFilter.area = filters.area;
+      messFilter.area = filters.area;
     }
 
     if (filters.search) {
       const searchRegex = new RegExp(filters.search, "i");
       accFilter.$or = [{ title: searchRegex }, { area: searchRegex }];
       libFilter.$or = [{ name: searchRegex }, { area: searchRegex }];
+      messFilter.$or = [{ name: searchRegex }, { area: searchRegex }];
     }
 
     if (includeAcc) {
@@ -245,6 +260,11 @@ export class AdminService {
     }
     if (includeLib) {
       libItems = await LibraryModel.find(libFilter)
+        .populate("ownerId", "firstName lastName email phone ownerType")
+        .lean();
+    }
+    if (includeMess) {
+      messItems = await MessModel.find(messFilter)
         .populate("ownerId", "firstName lastName email phone ownerType")
         .lean();
     }
@@ -322,7 +342,44 @@ export class AdminService {
       };
     });
 
-    const allListings = [...formattedAcc, ...formattedLib].sort(
+    const formattedMess: AdminListingItem[] = messItems.map((m: any) => {
+      const ownerObj = m.ownerId as {
+        _id?: any;
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        phone?: string;
+        ownerType?: string;
+      } | null;
+      return {
+        id: m._id.toString(),
+        name: m.name,
+        domain: "mess",
+        owner: {
+          id: ownerObj?._id ? ownerObj._id.toString() : m.ownerId?.toString() || "",
+          firstName: ownerObj?.firstName || "Unknown",
+          lastName: ownerObj?.lastName || "",
+          email: ownerObj?.email || "",
+          phone: ownerObj?.phone || "",
+          ownerType: ownerObj?.ownerType || "mess",
+        },
+        area: m.area,
+        status: m.status as AdminListingItem["status"],
+        rejectionReason: m.rejectionReason,
+        createdAt: m.createdAt ? new Date(m.createdAt).toISOString() : new Date().toISOString(),
+        updatedAt: m.updatedAt ? new Date(m.updatedAt).toISOString() : new Date().toISOString(),
+        specs: {
+          providerType: m.providerType,
+          pricing: m.pricing,
+          foodPreferences: m.foodPreferences,
+          mealTypes: m.mealTypes,
+          images: m.images,
+          location: m.location,
+        },
+      };
+    });
+
+    const allListings = [...formattedAcc, ...formattedLib, ...formattedMess].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
 
@@ -351,6 +408,12 @@ export class AdminService {
         .lean();
       if (!library) throw new NotFoundError("Library listing not found", "NOT_FOUND");
       return library as unknown as Record<string, unknown>;
+    } else if (domain === "mess") {
+      const mess = await MessModel.findById(id)
+        .populate("ownerId", "firstName lastName email phone ownerType")
+        .lean();
+      if (!mess) throw new NotFoundError("Mess listing not found", "NOT_FOUND");
+      return mess as unknown as Record<string, unknown>;
     } else {
       throw new BadRequestError("Unsupported listing domain", "INVALID_DOMAIN");
     }
@@ -374,6 +437,27 @@ export class AdminService {
     } else if (domain === "library") {
       const updated = await LibraryModel.findByIdAndUpdate(id, updateData, { new: true }).lean();
       if (!updated) throw new NotFoundError("Library listing not found", "NOT_FOUND");
+      return updated as unknown as Record<string, unknown>;
+    } else if (domain === "mess") {
+      // Mess model uppercases status; map admin UI statuses to public-visible values
+      const messStatusMap: Record<string, string> = {
+        published: "APPROVED",
+        rejected: "REJECTED",
+        suspended: "SUSPENDED",
+        pending_review: "PENDING_REVIEW",
+      };
+      const messUpdate: Record<string, unknown> = {
+        status: messStatusMap[status] || status.toUpperCase(),
+      };
+      if (status === "published") {
+        messUpdate.isVerified = true;
+        messUpdate.reviewedAt = new Date();
+      }
+      if (status === "rejected" && rejectionReason) {
+        messUpdate.rejectionReason = rejectionReason;
+      }
+      const updated = await MessModel.findByIdAndUpdate(id, messUpdate, { new: true }).lean();
+      if (!updated) throw new NotFoundError("Mess listing not found", "NOT_FOUND");
       return updated as unknown as Record<string, unknown>;
     } else {
       throw new BadRequestError("Unsupported listing domain", "INVALID_DOMAIN");

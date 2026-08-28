@@ -4,6 +4,7 @@ import type { ILead } from "../models/lead.model.js";
 import type { LeadRepository, LeadFilters } from "../repositories/lead.repository.js";
 import type { PropertyRepository } from "../repositories/property.repository.js";
 import type { LibraryRepository } from "../repositories/library.repository.js";
+import type { MessRepository } from "../repositories/mess.repository.js";
 import { leadEventEmitter, LEAD_EVENTS } from "../events/lead.events.js";
 import type {
   LeadStatusConstant,
@@ -51,6 +52,7 @@ export class LeadService {
     private leadRepository: LeadRepository,
     private propertyRepository: PropertyRepository,
     private libraryRepository: LibraryRepository,
+    private messRepository: MessRepository,
   ) {}
 
   async createLead(
@@ -92,6 +94,17 @@ export class LeadService {
               (library.ownerId as unknown as { id?: string }).id ||
               String(library.ownerId)
             : String(library.ownerId || "");
+      }
+    } else if (targetType === "MESS" || targetType === "TIFFIN") {
+      const mess = await this.messRepository.findById(targetId);
+      if (mess) {
+        targetExists = true;
+        ownerIdStr =
+          typeof mess.ownerId === "object" && mess.ownerId !== null
+            ? (mess.ownerId as unknown as { _id?: { toString(): string } })._id?.toString() ||
+              (mess.ownerId as unknown as { id?: string }).id ||
+              String(mess.ownerId)
+            : String(mess.ownerId || "");
       }
     } else {
       throw new BadRequestError(
@@ -351,6 +364,18 @@ export class LeadService {
           image: lib.images?.[0] || "",
           link: `/libraries/${lib.id || lib._id}`,
           propertyType: "LIBRARY",
+        };
+      }
+    } else if (item.targetType === "MESS" || item.targetType === "TIFFIN") {
+      const mess = await this.messRepository.findById(item.targetId?.toString());
+      if (mess) {
+        targetDetails = {
+          id: mess.id || mess._id.toString(),
+          title: mess.name,
+          area: mess.area,
+          image: mess.images?.[0] || "",
+          link: `/mess/${mess.slug}`,
+          propertyType: mess.providerType || "MESS",
         };
       }
     }

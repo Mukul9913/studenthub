@@ -34,9 +34,9 @@ export function ModerationStatusBadge({ status, className = "" }: ModerationStat
       return (
         <Badge
           variant="outline"
-          className={`bg-indigo-100 text-indigo-800 border-indigo-300 gap-1 text-[10px] uppercase font-semibold ${className}`}
+          className={`bg-primary/10 text-primary border-primary/20 gap-1 text-[10px] uppercase font-semibold ${className}`}
         >
-          <Eye className="h-3 w-3 text-indigo-600" /> Under Review
+          <Eye className="h-3 w-3 text-primary" /> Under Review
         </Badge>
       );
     case "APPROVED":
@@ -62,9 +62,9 @@ export function ModerationStatusBadge({ status, className = "" }: ModerationStat
       return (
         <Badge
           variant="outline"
-          className={`bg-purple-100 text-purple-800 border-purple-300 gap-1 text-[10px] uppercase font-semibold ${className}`}
+          className={`bg-destructive/10 text-destructive border-destructive/20 gap-1 text-[10px] uppercase font-semibold ${className}`}
         >
-          <AlertOctagon className="h-3 w-3 text-purple-600" /> Suspended
+          <AlertOctagon className="h-3 w-3 text-destructive" /> Suspended
         </Badge>
       );
     case "ARCHIVED":

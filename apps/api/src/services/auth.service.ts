@@ -105,16 +105,16 @@ export class AuthService {
       throw new UnauthorizedError("Invalid email or password", "INVALID_CREDENTIALS");
     }
 
+    const isMatch = await user.comparePassword(dto.password || "");
+    if (!isMatch) {
+      throw new UnauthorizedError("Invalid email or password", "INVALID_CREDENTIALS");
+    }
+
     if (!user.isVerified) {
       throw new UnauthorizedError(
         "Email address is not verified. Please verify your account using OTP.",
         "EMAIL_NOT_VERIFIED",
       );
-    }
-
-    const isMatch = await user.comparePassword(dto.password || "");
-    if (!isMatch) {
-      throw new UnauthorizedError("Invalid email or password", "INVALID_CREDENTIALS");
     }
 
     const accessToken = this.generateAccessToken(user);

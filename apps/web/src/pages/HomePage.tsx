@@ -13,6 +13,7 @@ import {
   Star,
   Users,
   Brain,
+  UtensilsCrossed,
 } from "lucide-react";
 
 import { SiteLayout } from "../components/layout/SiteLayout";
@@ -182,7 +183,7 @@ export function HomePage() {
           title="Recommended For You"
           subtitle="Based on your profile, budget, and preferences"
           badge="AI Picks"
-          accentColor="bg-violet-600"
+          accentColor="bg-primary"
           isLoading={feedLoading}
           isEmpty={!feed?.recommendedForYou?.length}
           viewAllHref={`/libraries`}
@@ -218,13 +219,13 @@ export function HomePage() {
       )}
 
       {/* ── POPULAR EDUCATION CENTERS ───────────────────────────────────────── */}
-      <section className="py-10 border-b border-border bg-card/30">
+      {/* <section className="py-10 border-b border-border bg-card/30">
         <div className="mx-auto max-w-7xl px-4 md:px-6 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-violet-600" />
-                <Badge variant="outline" className="bg-violet-50 text-violet-700 border-violet-200">
+                <span className="h-2 w-2 rounded-full bg-primary" />
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                   Education Ecosystem
                 </Badge>
               </div>
@@ -321,7 +322,7 @@ export function HomePage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ── TRENDING STUDY ZONES ────────────────────────────────────────────── */}
       <section className="py-10 border-b border-border bg-background">
@@ -347,41 +348,58 @@ export function HomePage() {
             {[
               {
                 name: "Bhawarkua",
-                slug: "bhawarkua",
                 count: "50+ Libraries & PGs",
                 tag: "Coaching Capital",
               },
               {
                 name: "Vijay Nagar",
-                slug: "vijay-nagar",
                 count: "40+ Modern PGs",
                 tag: "Tech & Corporate",
               },
-              { name: "Palasia", slug: "palasia", count: "35+ Silent Desks", tag: "Central Hub" },
+              {
+                name: "Palasia",
+                count: "35+ Silent Desks",
+                tag: "Central Hub",
+              },
               {
                 name: "Geeta Bhawan",
-                slug: "geeta-bhawan",
                 count: "25+ Hostels",
                 tag: "Peaceful Zone",
               },
-            ].map((z) => (
-              <Link
-                key={z.slug}
-                to={`/study-zones/${z.slug}`}
-                className="group rounded-2xl border border-border bg-card p-4 text-center shadow-sm hover:border-primary/50 hover:shadow-md transition-all"
-              >
-                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 group-hover:scale-110 transition-transform">
-                  <Building2 className="h-6 w-6" />
+            ].map((z) => {
+              const areaQ = encodeURIComponent(z.name);
+              return (
+                <div
+                  key={z.name}
+                  className="group rounded-2xl border border-border bg-card p-4 text-center shadow-sm hover:border-primary/50 hover:shadow-md transition-all"
+                >
+                  <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 group-hover:scale-110 transition-transform">
+                    <MapPin className="h-6 w-6" />
+                  </div>
+                  <h3 className="font-bold text-foreground text-sm">{z.name}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">{z.count}</p>
+                  <span className="mt-2 inline-block rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    {z.tag}
+                  </span>
+                  <div className="mt-3 flex flex-col gap-1.5">
+                    <Link
+                      to={`/libraries?area=${areaQ}&is24x7=true`}
+                      className="inline-flex items-center justify-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-[11px] font-semibold text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                    >
+                      <BookOpen className="h-3 w-3" />
+                      24x7 Libraries
+                    </Link>
+                    <Link
+                      to={`/accommodations?area=${areaQ}`}
+                      className="inline-flex items-center justify-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors"
+                    >
+                      <Building2 className="h-3 w-3" />
+                      PGs & Hostels
+                    </Link>
+                  </div>
                 </div>
-                <h3 className="font-bold text-foreground text-sm group-hover:text-primary transition-colors">
-                  {z.name}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-0.5">{z.count}</p>
-                <span className="mt-2 inline-block rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                  {z.tag}
-                </span>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -406,7 +424,7 @@ export function HomePage() {
         title="Trending Study Libraries"
         subtitle="Most visited libraries in Indore this week"
         badge="Libraries"
-        accentColor="bg-indigo-600"
+        accentColor="bg-primary"
         isLoading={feedLoading}
         isEmpty={!feed?.trendingLibraries?.length}
         viewAllHref="/libraries"
@@ -479,10 +497,10 @@ export function HomePage() {
       {/* ── PREFERENCES PROMO (for unauthenticated / no preferences) ─────────── */}
       {isAuthenticated && !feed?.hasPreferences && !feedLoading && (
         <section className="mx-auto max-w-7xl px-4 py-6 md:px-6">
-          <div className="rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 dark:border-violet-800 p-6 md:p-8">
+          <div className="rounded-2xl border border-primary/20 bg-primary/10 p-6 md:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                   <Brain className="h-6 w-6" />
                 </div>
                 <div>
@@ -495,7 +513,7 @@ export function HomePage() {
                   </p>
                 </div>
               </div>
-              <Button asChild className="shrink-0 bg-violet-600 hover:bg-violet-700">
+              <Button asChild className="shrink-0">
                 <Link to="/dashboard/preferences">
                   <Sparkles className="mr-2 h-4 w-4" />
                   Set Preferences
@@ -511,14 +529,21 @@ export function HomePage() {
         <h2 className="text-xl font-bold tracking-tight text-foreground md:text-2xl mb-6">
           Browse by Category
         </h2>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
           {[
             {
               icon: BookOpen,
               label: "Study Libraries",
               sublabel: "24x7 AC, WiFi, CCTV",
               href: "/libraries",
-              color: "from-indigo-500 to-indigo-600",
+              color: "from-primary to-primary/80",
+            },
+            {
+              icon: UtensilsCrossed,
+              label: "Mess & Tiffin",
+              sublabel: "Veg, Jain, Monthly Plans",
+              href: "/mess",
+              color: "from-amber-500 to-amber-600",
             },
             {
               icon: Building2,
@@ -539,7 +564,7 @@ export function HomePage() {
               label: "Verified Owners",
               sublabel: "Background Checked",
               href: "/libraries?verified=true",
-              color: "from-violet-500 to-violet-600",
+              color: "from-primary to-primary/80",
             },
           ].map(({ icon: Icon, label, sublabel, href, color }) => (
             <Link
@@ -639,11 +664,11 @@ export function HomePage() {
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row md:justify-end">
-              <Button size="lg" asChild className="font-semibold text-xs">
+              <Button size="lg" asChild className="font-semibold">
                 <Link to="/register?role=owner">List Your Business</Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="font-semibold text-xs">
-                <Link to="/owner/dashboard">Owner Portal</Link>
+              <Button size="lg" variant="outline" asChild className="font-semibold">
+                <Link to="/login">Owner Portal</Link>
               </Button>
             </div>
           </div>

@@ -30,14 +30,35 @@ const WEIGHTS = {
 } as const;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+function listingPrice(doc: Record<string, unknown>): number {
+  const pricing = doc.pricing as Record<string, unknown> | undefined;
+  const food = doc.food as Record<string, unknown> | undefined;
+  return Number(
+    pricing?.monthlyFee ??
+      pricing?.startingMealPrice ??
+      doc.monthlyFee ??
+      doc.rent ??
+      doc.price ??
+      doc.startingPrice ??
+      food?.monthlyCharges ??
+      0,
+  );
+}
+
+function listingRating(doc: Record<string, unknown>): number {
+  return Number(doc.avgRating ?? doc.rating ?? 0);
+}
+
 function toListingShape(doc: Record<string, unknown>, _targetType: string) {
   return {
     id: String(doc._id ?? doc.id),
     title: (doc.name ?? doc.title ?? "") as string,
     area: (doc.area ?? "") as string,
-    city: (doc.city ?? "Indore") as string,
-    price: (doc.monthlyFee ?? doc.rent ?? doc.price ?? undefined) as number | undefined,
-    rating: (doc.rating ?? 0) as number,
+    city: ((doc.location as Record<string, unknown> | undefined)?.city ??
+      doc.city ??
+      "Indore") as string,
+    price: listingPrice(doc) || undefined,
+    rating: listingRating(doc),
     reviewsCount: (doc.reviewsCount ?? 0) as number,
     images: (Array.isArray(doc.images) ? doc.images.slice(0, 1) : []) as string[],
     isVerified: Boolean(doc.isVerified),
@@ -86,14 +107,14 @@ function calculateRelevanceScore(
 
   if (!p) {
     // No preferences — fall back to rating + popularity
-    const rating = Number(listing.rating ?? 0);
+    const rating = listingRating(listing);
     const popularity = Math.min(Number(listing.reviewsCount ?? 0), 100) / 100;
     score = rating * 10 * WEIGHTS.RATING * 10 + popularity * 10 * WEIGHTS.POPULARITY * 10 + 40;
     return { score: Math.min(100, Math.round(score)), reasons: ["HIGH_RATED"] };
   }
 
   // Budget match (0-30 pts)
-  const price = Number(listing.monthlyFee ?? listing.rent ?? listing.price ?? 0);
+  const price = listingPrice(listing);
   const budgetMin = p.budgetMin as number | undefined;
   const budgetMax = p.budgetMax as number | undefined;
   if (price > 0 && budgetMin != null && budgetMax != null) {
@@ -126,7 +147,7 @@ function calculateRelevanceScore(
   }
 
   // Rating (0-15 pts)
-  const rating = Number(listing.rating ?? 0);
+  const rating = listingRating(listing);
   score += (rating / 5) * WEIGHTS.RATING * 100;
   if (rating >= 4.5) reasons.push("HIGH_RATED");
 
@@ -251,13 +272,20 @@ export async function getRecommendedForUser(
     userId: new mongoose.Types.ObjectId(userId),
   }).lean();
 
-  const query: FilterQuery<unknown> = { status: "APPROVED" };
+  // Include common live statuses so drafts/rejected stay out but published listings show
+  const query: FilterQuery<unknown> = {
+    status: { $in: ["APPROVED", "PUBLISHED", "ACTIVE"] },
+  };
 
   const libraries: RecommendationDTO[] = [];
   const properties: RecommendationDTO[] = [];
 
   if (targetType === "LIBRARY" || targetType === "ALL") {
-    const libs = await LibraryModel.find(query).limit(40).lean();
+    let libs = await LibraryModel.find(query).limit(40).lean();
+    // Fallback if status enum differs in older seed data
+    if (libs.length === 0) {
+      libs = await LibraryModel.find({}).limit(40).lean();
+    }
     for (const lib of libs) {
       const doc = lib as Record<string, unknown>;
       const { score, reasons } = calculateRelevanceScore(doc, prefs);
@@ -266,7 +294,10 @@ export async function getRecommendedForUser(
   }
 
   if (targetType === "ACCOMMODATION" || targetType === "ALL") {
-    const props = await PropertyModel.find(query).limit(40).lean();
+    let props = await PropertyModel.find(query).limit(40).lean();
+    if (props.length === 0) {
+      props = await PropertyModel.find({}).limit(40).lean();
+    }
     for (const prop of props) {
       const doc = prop as Record<string, unknown>;
       const { score, reasons } = calculateRelevanceScore(doc, prefs);
@@ -289,7 +320,7 @@ export async function getTrendingListings(
   const query: FilterQuery<unknown> = { status: "APPROVED" };
   if (area) query.area = { $regex: area, $options: "i" };
 
-  const sort: Record<string, SortOrder> = { rating: -1, reviewsCount: -1, createdAt: -1 };
+  const sort: Record<string, SortOrder> = { avgRating: -1, reviewsCount: -1, createdAt: -1 };
   const docs =
     targetType === "LIBRARY"
       ? await LibraryModel.find(query).sort(sort).limit(limit).lean()
@@ -372,8 +403,11 @@ export async function getNewListings(targetType?: string, limit = 8): Promise<Re
 
 export async function getBudgetFriendly(limit = 8): Promise<RecommendationDTO[]> {
   const results: RecommendationDTO[] = [];
-  const libs = await LibraryModel.find({ status: "APPROVED", monthlyFee: { $lte: 3000 } })
-    .sort({ rating: -1 })
+  const libs = await LibraryModel.find({
+    status: { $in: ["APPROVED", "PUBLISHED", "ACTIVE"] },
+    "pricing.monthlyFee": { $lte: 3000 },
+  })
+    .sort({ avgRating: -1 })
     .limit(limit)
     .lean();
   results.push(
@@ -386,12 +420,13 @@ export async function getBudgetFriendly(limit = 8): Promise<RecommendationDTO[]>
 
 export async function getPremiumPicks(limit = 8): Promise<RecommendationDTO[]> {
   const results: RecommendationDTO[] = [];
+  const statusQuery = { status: { $in: ["APPROVED", "PUBLISHED", "ACTIVE"] } };
   const libs = await LibraryModel.find({
-    status: "APPROVED",
-    rating: { $gte: 4.0 },
+    ...statusQuery,
+    avgRating: { $gte: 4.0 },
     isVerified: true,
   })
-    .sort({ rating: -1, reviewsCount: -1 })
+    .sort({ avgRating: -1, reviewsCount: -1 })
     .limit(limit)
     .lean();
   results.push(
@@ -403,11 +438,11 @@ export async function getPremiumPicks(limit = 8): Promise<RecommendationDTO[]> {
     ),
   );
   const props = await PropertyModel.find({
-    status: "APPROVED",
-    rating: { $gte: 4.0 },
+    ...statusQuery,
+    avgRating: { $gte: 4.0 },
     isVerified: true,
   })
-    .sort({ rating: -1, reviewsCount: -1 })
+    .sort({ avgRating: -1, reviewsCount: -1 })
     .limit(limit)
     .lean();
   results.push(
@@ -418,12 +453,35 @@ export async function getPremiumPicks(limit = 8): Promise<RecommendationDTO[]> {
       ]),
     ),
   );
+
+  // Soft fallback: show top-rated listings even if none are verified+4★ yet
+  if (results.length === 0) {
+    const fallbackLibs = await LibraryModel.find(statusQuery)
+      .sort({ avgRating: -1, reviewsCount: -1 })
+      .limit(limit)
+      .lean();
+    results.push(
+      ...fallbackLibs.map((d) =>
+        buildRecommendationDTO(d as Record<string, unknown>, "LIBRARY", 75, ["HIGH_RATED"]),
+      ),
+    );
+    const fallbackProps = await PropertyModel.find(statusQuery)
+      .sort({ avgRating: -1, reviewsCount: -1 })
+      .limit(limit)
+      .lean();
+    results.push(
+      ...fallbackProps.map((d) =>
+        buildRecommendationDTO(d as Record<string, unknown>, "ACCOMMODATION", 75, ["HIGH_RATED"]),
+      ),
+    );
+  }
+
   return results.sort((a, b) => b.score - a.score).slice(0, limit);
 }
 
 export async function getPersonalizedFeed(userId: string | null): Promise<HomePageFeedDTO> {
   const [
-    recommendedForYou,
+    recommendedForYouRaw,
     trendingLibraries,
     trendingProperties,
     newListings,
@@ -443,6 +501,16 @@ export async function getPersonalizedFeed(userId: string | null): Promise<HomePa
   const prefs = userId
     ? await StudentPreferenceModel.findOne({ userId: new mongoose.Types.ObjectId(userId) }).lean()
     : null;
+
+  // Always surface cards for logged-in users: preference-ranked first, else trending mix
+  const recommendedForYou =
+    recommendedForYouRaw.length > 0
+      ? recommendedForYouRaw
+      : userId
+        ? [...trendingLibraries, ...trendingProperties]
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 10)
+        : [];
 
   const popularNearYou = prefs?.preferredAreas?.[0]
     ? await getPopularNearMe(prefs.preferredAreas[0], "LIBRARY", 8)

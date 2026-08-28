@@ -21,6 +21,13 @@ import { INDORE_AREAS } from "../../features/accommodation/mock-data/areas";
 import { getLibraryById, updateLibrary } from "../../features/library/services";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { ApiError } from "../../services/api";
+import { DraggableMapPicker } from "../../components/maps/DraggableMapPicker";
+import {
+  DEFAULT_INDORE_LAT,
+  DEFAULT_INDORE_LNG,
+  buildGeoLocationPayload,
+  patchFromGeocode,
+} from "../../lib/location-helpers";
 
 const LIBRARY_FACILITIES = [
   "AC",
@@ -55,6 +62,10 @@ export function EditLibraryPage() {
     address: "",
     area: "",
     zipCode: "452001",
+    latitude: DEFAULT_INDORE_LAT,
+    longitude: DEFAULT_INDORE_LNG,
+    googlePlaceId: undefined as string | undefined,
+    formattedAddress: undefined as string | undefined,
     openingTime: "06:00",
     closingTime: "23:00",
     is24x7: false,
@@ -86,7 +97,11 @@ export function EditLibraryPage() {
           description: lib.description || "",
           address: lib.location?.address || "",
           area: lib.area || "",
-          zipCode: lib.location?.zipCode || "452001",
+          zipCode: lib.location?.zipCode || lib.location?.pincode || "452001",
+          latitude: lib.location?.latitude || lib.location?.coordinates?.coordinates?.[1] || DEFAULT_INDORE_LAT,
+          longitude: lib.location?.longitude || lib.location?.coordinates?.coordinates?.[0] || DEFAULT_INDORE_LNG,
+          googlePlaceId: lib.location?.googlePlaceId,
+          formattedAddress: lib.location?.formattedAddress,
           openingTime: lib.operatingHours?.openingTime || "06:00",
           closingTime: lib.operatingHours?.closingTime || "23:00",
           is24x7: !!lib.operatingHours?.is24x7,
@@ -132,12 +147,14 @@ export function EditLibraryPage() {
       await updateLibrary(id, {
         name: form.name.trim(),
         description: form.description.trim(),
-        location: {
-          address: form.address.trim(),
-          city: "indore",
-          state: "Madhya Pradesh",
-          zipCode: form.zipCode.trim() || "452001",
-        },
+        location: buildGeoLocationPayload({
+          address: form.address,
+          zipCode: form.zipCode,
+          latitude: form.latitude,
+          longitude: form.longitude,
+          googlePlaceId: form.googlePlaceId,
+          formattedAddress: form.formattedAddress,
+        }),
         area: form.area,
         contact: {
           phone: form.phone.trim() || undefined,
@@ -220,6 +237,26 @@ export function EditLibraryPage() {
 
         <div className="space-y-4 border-t border-border pt-6">
           <h2 className="text-lg font-semibold">Location</h2>
+
+          <div>
+            <Label className="mb-1.5 block">Pin Exact Library Location</Label>
+            <DraggableMapPicker
+              initialAddress={form.address}
+              initialCity="Indore"
+              initialLatitude={form.latitude}
+              initialLongitude={form.longitude}
+              onLocationChange={(loc) => {
+                const patch = patchFromGeocode(loc);
+                setForm((prev) => ({
+                  ...prev,
+                  ...patch,
+                  zipCode: patch.zipCode || prev.zipCode,
+                  area: patch.area || prev.area,
+                }));
+              }}
+            />
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>Area / Locality *</Label>
@@ -237,9 +274,21 @@ export function EditLibraryPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Full Address</Label>
-              <Input value={form.address} onChange={(e) => set("address", e.target.value)} />
+              <Label>Zip Code</Label>
+              <Input value={form.zipCode} onChange={(e) => set("zipCode", e.target.value)} />
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Full Address</Label>
+            <Textarea
+              rows={2}
+              value={form.address}
+              onChange={(e) => set("address", e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Auto-filled from map pin — you can still edit the street text.
+            </p>
           </div>
         </div>
 

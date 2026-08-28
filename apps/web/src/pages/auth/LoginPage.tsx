@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { AuthShell } from "../../components/auth/AuthShell";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
+import { PasswordInput } from "../../components/ui/password-input";
 import { Label } from "../../components/ui/label";
 import { fetchApi, setToken, ApiError } from "../../services/api";
 
@@ -24,7 +25,18 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [needsVerification, setNeedsVerification] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+
+  const goToVerifyOtp = (targetEmail: string, autoResend = true) => {
+    const params = new URLSearchParams({
+      email: targetEmail,
+      purpose: "VERIFY_EMAIL",
+    });
+    if (autoResend) params.set("autoResend", "1");
+    navigate(`/verify-otp?${params.toString()}`, { replace: true });
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +51,15 @@ export function LoginPage() {
     }
 
     setError(null);
+    setNeedsVerification(false);
     setIsLoading(true);
+
+    const normalizedEmail = email.trim().toLowerCase();
 
     try {
       const response = await fetchApi<{ accessToken: string; user: AuthUser }>("/auth/login", {
         method: "POST",
-        data: { email: email.trim().toLowerCase(), password },
+        data: { email: normalizedEmail, password },
       });
 
       setToken(response.accessToken);
@@ -65,6 +80,16 @@ export function LoginPage() {
 
       navigate(targetPath, { replace: true });
     } catch (err) {
+      if (err instanceof ApiError && err.code === "EMAIL_NOT_VERIFIED") {
+        setNeedsVerification(true);
+        setError("Your email is not verified yet. Verify with OTP to continue.");
+        toast.message("Email not verified", {
+          description: "We will send a new OTP so you can verify your account.",
+        });
+        // Send user to OTP screen and trigger resend automatically
+        goToVerifyOtp(normalizedEmail, true);
+        return;
+      }
       if (err instanceof ApiError) {
         setError(err.firstFieldError);
       } else {
@@ -72,6 +97,20 @@ export function LoginPage() {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleVerifyClick = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      setError("Enter your email first, then click Verify.");
+      return;
+    }
+    setIsSendingOtp(true);
+    try {
+      goToVerifyOtp(normalizedEmail, true);
+    } finally {
+      setIsSendingOtp(false);
     }
   };
 
@@ -97,7 +136,10 @@ export function LoginPage() {
             autoComplete="email"
             placeholder="you@example.com"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setNeedsVerification(false);
+            }}
             disabled={isLoading}
           />
         </div>
@@ -108,9 +150,8 @@ export function LoginPage() {
               Forgot?
             </Link>
           </div>
-          <Input
+          <PasswordInput
             id="login-password"
-            type="password"
             autoComplete="current-password"
             placeholder="••••••••"
             value={password}
@@ -119,13 +160,34 @@ export function LoginPage() {
           />
         </div>
         {error && (
-          <p className="text-sm text-destructive" role="alert">
-            {error}
-          </p>
+          <div className="space-y-2" role="alert">
+            <p className="text-sm text-destructive">{error}</p>
+            {needsVerification && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                isLoading={isSendingOtp}
+                onClick={handleVerifyClick}
+              >
+                Verify email with OTP
+              </Button>
+            )}
+          </div>
         )}
         <Button type="submit" className="w-full" isLoading={isLoading} loadingText="Signing in…">
           Log in
         </Button>
+        <p className="text-center text-xs text-muted-foreground">
+          Registered but never verified?{" "}
+          <button
+            type="button"
+            className="font-medium text-primary hover:underline"
+            onClick={handleVerifyClick}
+          >
+            Verify email
+          </button>
+        </p>
       </form>
     </AuthShell>
   );

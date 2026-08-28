@@ -31,6 +31,13 @@ import {
   type BackendPropertyType,
 } from "../../features/accommodation/schemas";
 import { ApiError } from "../../services/api";
+import { DraggableMapPicker } from "../../components/maps/DraggableMapPicker";
+import {
+  DEFAULT_INDORE_LAT,
+  DEFAULT_INDORE_LNG,
+  buildGeoLocationPayload,
+  patchFromGeocode,
+} from "../../lib/location-helpers";
 
 const AMENITIES = [
   "WiFi",
@@ -62,6 +69,10 @@ export function EditAccommodationPage() {
   const [area, setArea] = useState("");
   const [address, setAddress] = useState("");
   const [zipCode, setZipCode] = useState("");
+  const [latitude, setLatitude] = useState(DEFAULT_INDORE_LAT);
+  const [longitude, setLongitude] = useState(DEFAULT_INDORE_LNG);
+  const [googlePlaceId, setGooglePlaceId] = useState<string | undefined>();
+  const [formattedAddress, setFormattedAddress] = useState<string | undefined>();
   const [foodProvided, setFoodProvided] = useState(false);
   const [amenities, setAmenities] = useState<string[]>([]);
   const [images, setImages] = useState<string[]>([]);
@@ -81,6 +92,8 @@ export function EditAccommodationPage() {
       setArea(item.location.area);
       setAddress(item.location.address);
       setZipCode(item.location.pincode);
+      setLatitude(item.location.lat ?? DEFAULT_INDORE_LAT);
+      setLongitude(item.location.lng ?? DEFAULT_INDORE_LNG);
       setFoodProvided(item.foodAvailability === "Included");
       setAmenities(item.amenities || []);
       setImages(item.images || []);
@@ -131,16 +144,14 @@ export function EditAccommodationPage() {
         description: description.trim(),
         propertyType,
         area,
-        location: {
-          address: address.trim(),
-          city: "indore",
-          state: "Madhya Pradesh",
-          zipCode: zipCode.trim() || "452001",
-          coordinates: {
-            type: "Point",
-            coordinates: [75.8577, 22.7196],
-          },
-        },
+        location: buildGeoLocationPayload({
+          address,
+          zipCode,
+          latitude,
+          longitude,
+          googlePlaceId,
+          formattedAddress,
+        }),
         amenities,
         food: {
           provided: foodProvided,
@@ -227,6 +238,26 @@ export function EditAccommodationPage() {
               </Select>
             </div>
 
+            <div className="sm:col-span-2">
+              <Label className="mb-1.5 block">Pin Exact Property Location</Label>
+              <DraggableMapPicker
+                initialAddress={address}
+                initialCity="Indore"
+                initialLatitude={latitude}
+                initialLongitude={longitude}
+                onLocationChange={(loc) => {
+                  const patch = patchFromGeocode(loc);
+                  if (patch.address) setAddress(patch.address);
+                  if (patch.zipCode) setZipCode(patch.zipCode);
+                  setLatitude(patch.latitude);
+                  setLongitude(patch.longitude);
+                  setGooglePlaceId(patch.googlePlaceId);
+                  setFormattedAddress(patch.formattedAddress);
+                  if (patch.area) setArea(patch.area);
+                }}
+              />
+            </div>
+
             <div>
               <Label>Area</Label>
               <Select value={area} onValueChange={setArea}>
@@ -243,16 +274,6 @@ export function EditAccommodationPage() {
               </Select>
             </div>
 
-            <div className="sm:col-span-2">
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="mt-1.5"
-              />
-            </div>
-
             <div>
               <Label htmlFor="zipCode">Zip / Pin code</Label>
               <Input
@@ -263,7 +284,20 @@ export function EditAccommodationPage() {
               />
             </div>
 
-            <div className="flex items-center gap-2 pt-6">
+            <div className="sm:col-span-2">
+              <Label htmlFor="address">Full Street Address</Label>
+              <Input
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="mt-1.5"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Auto-filled from map pin — you can still edit the street text.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-6 sm:col-span-2">
               <Checkbox
                 id="food"
                 checked={foodProvided}

@@ -135,7 +135,7 @@ export function AdminMonetizationPage() {
             <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Active Subscriptions
             </CardTitle>
-            <Crown className="h-4 w-4 text-purple-600" />
+            <Crown className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
@@ -271,7 +271,7 @@ export function AdminMonetizationPage() {
                 <CardHeader>
                   <Badge
                     variant="outline"
-                    className="w-fit text-[10px] uppercase font-bold text-purple-600 bg-purple-50"
+                    className="w-fit text-[10px] uppercase font-bold text-primary bg-primary/10"
                   >
                     {s.category}
                   </Badge>

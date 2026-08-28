@@ -67,6 +67,8 @@ export function EnquiryModal({
       setErrorMessage(null);
       toast.success("Enquiry sent successfully!");
       queryClient.invalidateQueries({ queryKey: ["my-enquiries"] });
+      queryClient.invalidateQueries({ queryKey: ["my-leads-and-enquiries"] });
+      queryClient.invalidateQueries({ queryKey: ["owner-leads"] });
     },
     onError: (err: Error) => {
       const msg = err.message || "Failed to send enquiry. Please try again.";

@@ -120,7 +120,7 @@ export function AdminListingsPage() {
             { id: "all", label: "All Domains" },
             { id: "accommodation", label: "Accommodations" },
             { id: "library", label: "Libraries" },
-            { id: "mess", label: "Messes (Soon)" },
+            { id: "mess", label: "Mess / Tiffin" },
             { id: "service_provider", label: "Services (Soon)" },
           ].map((tab) => (
             <Button
@@ -258,6 +258,8 @@ export function AdminListingsPage() {
                             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-muted/60 text-muted-foreground">
                               {item.domain === "library" ? (
                                 <BookOpen className="h-5 w-5 text-amber-500" />
+                              ) : item.domain === "mess" ? (
+                                <Building2 className="h-5 w-5 text-primary" />
                               ) : (
                                 <Building2 className="h-5 w-5 text-blue-500" />
                               )}
@@ -279,10 +281,16 @@ export function AdminListingsPage() {
                           className={
                             item.domain === "library"
                               ? "bg-amber-500/10 text-amber-600"
-                              : "bg-blue-500/10 text-blue-600"
+                              : item.domain === "mess"
+                                ? "bg-primary/10 text-primary"
+                                : "bg-blue-500/10 text-blue-600"
                           }
                         >
-                          {item.domain === "library" ? "Library" : "Accommodation"}
+                          {item.domain === "library"
+                            ? "Library"
+                            : item.domain === "mess"
+                              ? "Mess"
+                              : "Accommodation"}
                         </Badge>
                       </td>
 

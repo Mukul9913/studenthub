@@ -1,14 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
-import { Calendar, ExternalLink, ArrowLeft, Clock } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Calendar, ExternalLink, Clock } from "lucide-react";
 
-import { SiteLayout } from "@/components/layout/SiteLayout";
+import { DashboardShell, USER_SIDEBAR } from "@/components/layout/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState } from "@/components/common/LoadingState";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { fetchApi } from "@/services/api";
+import { cn } from "@/lib/utils";
 
 interface UserLeadItem {
   id: string;
@@ -26,7 +27,17 @@ interface UserLeadItem {
   };
 }
 
+function statusBadgeClass(status: string) {
+  if (status === "CONVERTED") return "border-emerald-200 bg-emerald-50 text-emerald-800";
+  if (status === "ACCEPTED" || status === "VISITED")
+    return "border-primary/20 bg-primary/10 text-primary";
+  if (status === "REJECTED" || status === "CANCELLED")
+    return "border-destructive/30 bg-destructive/10 text-destructive";
+  return "border-amber-200 bg-amber-50 text-amber-800";
+}
+
 export function UserEnquiriesPage() {
+  const { pathname } = useLocation();
   const {
     data: leads,
     isLoading,
@@ -41,7 +52,7 @@ export function UserEnquiriesPage() {
           return data;
         }
       } catch {
-        // Fallback
+        // Fallback to legacy endpoint
       }
 
       const data = await fetchApi<UserLeadItem[]>("/enquiries/me");
@@ -50,153 +61,110 @@ export function UserEnquiriesPage() {
   });
 
   return (
-    <SiteLayout>
-      <div className="mx-auto max-w-5xl px-4 py-8 md:px-6">
-        {/* Header */}
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between border-b border-border pb-5">
-          <div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" asChild className="h-7 p-0 hover:bg-transparent">
-                <Link
-                  to="/dashboard/profile"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-1 inline" /> Profile
-                </Link>
+    <DashboardShell
+      title="My Visit Requests & Enquiries"
+      subtitle="Track responses and scheduled visit times for your property and study library inquiries in Indore."
+      links={USER_SIDEBAR}
+      currentPath={pathname}
+    >
+      {isLoading ? (
+        <div className="py-12">
+          <LoadingState />
+        </div>
+      ) : isError ? (
+        <div className="py-12">
+          <ErrorState onRetry={() => refetch()} />
+        </div>
+      ) : !leads || leads.length === 0 ? (
+        <EmptyState
+          title="No visit requests submitted yet"
+          description="Browse accommodations or study libraries in Indore and click 'Request Visit' to connect directly with owners."
+          action={
+            <div className="flex gap-2">
+              <Button asChild size="sm">
+                <Link to="/accommodations">Browse Accommodations</Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/libraries">Browse Libraries</Link>
               </Button>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl mt-1">
-              My Visit Requests & Enquiries
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Track responses and scheduled visit times for your property and study library
-              inquiries in Indore.
-            </p>
-          </div>
-        </div>
+          }
+        />
+      ) : (
+        <div className="space-y-4">
+          {leads.map((item) => {
+            const target = item.targetDetails;
+            return (
+              <div
+                key={item.id}
+                className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 transition hover:border-primary/40 sm:flex-row"
+              >
+                {target?.image && (
+                  <img
+                    src={target.image}
+                    alt={target.title || "Listing"}
+                    className="h-24 w-full shrink-0 rounded-lg border border-border object-cover sm:w-32"
+                  />
+                )}
 
-        {/* Content */}
-        <div className="mt-6">
-          {isLoading ? (
-            <div className="py-12">
-              <LoadingState />
-            </div>
-          ) : isError ? (
-            <div className="py-12">
-              <ErrorState onRetry={() => refetch()} />
-            </div>
-          ) : !leads || leads.length === 0 ? (
-            <EmptyState
-              title="No visit requests submitted yet"
-              description="Browse accommodations or study libraries in Indore and click 'Request Visit' to connect directly with owners."
-              action={
-                <div className="flex gap-2">
-                  <Button asChild size="sm">
-                    <Link to="/accommodations">Browse Accommodations</Link>
-                  </Button>
-                  <Button asChild variant="outline" size="sm">
-                    <Link to="/libraries">Browse Libraries</Link>
-                  </Button>
-                </div>
-              }
-            />
-          ) : (
-            <div className="space-y-4">
-              {leads.map((item: UserLeadItem) => {
-                const target = item.targetDetails;
-                const status = item.status;
-
-                return (
-                  <div
-                    key={item.id}
-                    className="flex flex-col sm:flex-row gap-4 rounded-xl border border-border bg-card p-4 transition hover:border-primary/40 shadow-sm"
-                  >
-                    {/* Cover image preview */}
-                    {target?.image && (
-                      <img
-                        src={target.image}
-                        alt={target.title}
-                        className="h-24 w-full sm:w-32 rounded-lg object-cover border border-border shrink-0"
-                      />
-                    )}
-
-                    {/* Information */}
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-[10px] uppercase font-semibold">
-                            {item.targetType}
-                          </Badge>
-                          <Badge
-                            variant="outline"
-                            className={`text-[11px] font-semibold uppercase ${
-                              status === "CONVERTED"
-                                ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-                                : status === "ACCEPTED"
-                                  ? "bg-indigo-100 text-indigo-800 border-indigo-300"
-                                  : status === "VISITED"
-                                    ? "bg-purple-100 text-purple-800 border-purple-300"
-                                    : status === "REJECTED" || status === "CANCELLED"
-                                      ? "bg-red-100 text-red-800 border-red-300"
-                                      : "bg-amber-100 text-amber-800 border-amber-300"
-                            }`}
-                          >
-                            {status}
-                          </Badge>
-                        </div>
-                        <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          Submitted{" "}
-                          {new Date(item.createdAt).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </span>
-                      </div>
-
-                      <h3 className="text-base font-semibold text-foreground truncate">
-                        {target?.title || "Listing Target"}
-                      </h3>
-
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                        <span>Area: {target?.area || "Indore"}</span>
-                        {item.preferredDate && (
-                          <span className="flex items-center gap-1 text-indigo-600 font-medium">
-                            <Clock className="h-3.5 w-3.5" /> Preferred Visit:{" "}
-                            {new Date(item.preferredDate).toLocaleDateString("en-IN")} (
-                            {item.preferredTime || "Anytime"})
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="rounded-lg bg-muted/40 p-2.5 text-xs text-muted-foreground italic border border-border/50">
-                        "{item.message}"
-                      </div>
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-[10px] font-semibold uppercase">
+                        {item.targetType}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className={cn("text-[11px] font-semibold uppercase", statusBadgeClass(item.status))}
+                      >
+                        {item.status}
+                      </Badge>
                     </div>
-
-                    {/* Actions */}
-                    <div className="flex sm:flex-col items-center justify-end gap-2 border-t sm:border-t-0 sm:border-l border-border pt-3 sm:pt-0 sm:pl-4">
-                      {target?.link && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          asChild
-                          className="w-full gap-1 text-xs"
-                        >
-                          <Link to={target.link}>
-                            View Listing <ExternalLink className="h-3 w-3 ml-0.5" />
-                          </Link>
-                        </Button>
-                      )}
-                    </div>
+                    <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      Submitted{" "}
+                      {new Date(item.createdAt).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
-          )}
+
+                  <h3 className="truncate text-sm font-semibold text-foreground">
+                    {target?.title || "Listing Target"}
+                  </h3>
+
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                    <span>Area: {target?.area || "Indore"}</span>
+                    {item.preferredDate && (
+                      <span className="flex items-center gap-1 font-medium text-primary">
+                        <Clock className="h-3.5 w-3.5" /> Preferred Visit:{" "}
+                        {new Date(item.preferredDate).toLocaleDateString("en-IN")} (
+                        {item.preferredTime || "Anytime"})
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="rounded-lg border border-border/50 bg-muted/40 p-2.5 text-xs italic text-muted-foreground">
+                    "{item.message}"
+                  </div>
+                </div>
+
+                {target?.link && (
+                  <div className="flex items-center justify-end border-t border-border pt-3 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
+                    <Button size="sm" variant="outline" asChild className="w-full gap-1">
+                      <Link to={target.link}>
+                        View Listing <ExternalLink className="ml-0.5 h-3 w-3" />
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-      </div>
-    </SiteLayout>
+      )}
+    </DashboardShell>
   );
 }

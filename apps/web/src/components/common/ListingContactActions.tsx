@@ -159,7 +159,7 @@ export function ListingContactActions({
             variant="outline"
             size="icon"
             onClick={handleShare}
-            className="h-9 w-9 text-slate-600 hover:text-indigo-600"
+            className="h-9 w-9 text-slate-600 hover:text-primary"
           >
             <Share2 className="h-4 w-4" />
           </Button>
@@ -183,7 +183,7 @@ export function ListingContactActions({
 
       <Button
         onClick={() => setIsModalOpen(true)}
-        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-2 font-medium"
+        className="w-full flex items-center justify-center gap-2 font-medium"
       >
         <Calendar className="h-4 w-4" /> Request Visit / Schedule Call
       </Button>
@@ -253,7 +253,6 @@ export function ListingContactActions({
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
               >
                 {isSubmitting ? "Sending Request..." : "Submit Visit Request"}
               </Button>

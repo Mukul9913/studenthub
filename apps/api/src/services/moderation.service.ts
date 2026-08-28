@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { NotFoundError, ForbiddenError, BadRequestError } from "../errors/index.js";
 import { PropertyModel } from "../models/property.model.js";
 import { LibraryModel } from "../models/library.model.js";
+import { MessModel } from "../models/mess.model.js";
 import type {
   ModerationRepository,
   ModerationFilters,
@@ -24,6 +25,10 @@ export class ModerationService {
       const library = await LibraryModel.findById(objId);
       if (!library) throw new NotFoundError("Library study space not found", "LIBRARY_NOT_FOUND");
       return { doc: library, targetType: "LIBRARY" };
+    } else if (typeUpper === "MESS" || typeUpper === "TIFFIN") {
+      const mess = await MessModel.findById(objId);
+      if (!mess) throw new NotFoundError("Mess / tiffin listing not found", "MESS_NOT_FOUND");
+      return { doc: mess, targetType: "MESS" };
     } else {
       throw new BadRequestError(
         `Target type ${targetType} is currently not supported`,

@@ -25,9 +25,11 @@ import { ModerationStatusBadge } from "../../components/common/ModerationStatusB
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { getMyLibraries, deleteLibrary as deleteLibraryApi } from "../../features/library/services";
 import { getMyListings, deleteAccommodation } from "../../features/accommodation/services";
+import { getMyMesses, deleteMess as deleteMessApi, updateMess } from "../../features/mess/services";
+import { PROVIDER_TYPE_LABELS } from "../../features/mess/labels";
 import { fetchApi } from "../../services/api";
 import type { Accommodation } from "../../features/accommodation/types";
-import type { Library } from "@studenthub/types";
+import type { Library, MessProvider } from "@studenthub/types";
 
 type AccomListingItem = Accommodation & {
   status?: string;
@@ -41,6 +43,12 @@ type LibraryListingItem = Library & {
   moderationNotes?: string;
 };
 
+type MessListingItem = MessProvider & {
+  status?: string;
+  rejectionReason?: string;
+  moderationNotes?: string;
+};
+
 export function MyListingsPage() {
   const { pathname } = useLocation();
   const { user } = useAuth();
@@ -48,6 +56,7 @@ export function MyListingsPage() {
   const [activeTab, setActiveTab] = useState<string>("all");
 
   const isLibraryOwner = user?.ownerType === "library";
+  const isMessOwner = user?.ownerType === "mess";
   const sidebarLinks = getOwnerSidebar(user?.ownerType);
 
   const {
@@ -58,7 +67,7 @@ export function MyListingsPage() {
   } = useQuery({
     queryKey: ["owner-my-listings"],
     queryFn: getMyListings,
-    enabled: !isLibraryOwner,
+    enabled: !isLibraryOwner && !isMessOwner,
   });
 
   const {
@@ -70,6 +79,17 @@ export function MyListingsPage() {
     queryKey: ["owner-my-libraries"],
     queryFn: getMyLibraries,
     enabled: isLibraryOwner,
+  });
+
+  const {
+    data: messData,
+    isLoading: isMessLoading,
+    isError: isMessError,
+    refetch: refetchMess,
+  } = useQuery({
+    queryKey: ["owner-my-messes"],
+    queryFn: getMyMesses,
+    enabled: isMessOwner,
   });
 
   const deleteAccomMutation = useMutation({
@@ -94,8 +114,24 @@ export function MyListingsPage() {
     },
   });
 
+  const deleteMessMutation = useMutation({
+    mutationFn: deleteMessApi,
+    onSuccess: () => {
+      toast.success("Mess listing deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["owner-my-messes"] });
+    },
+    onError: () => {
+      toast.error("Failed to delete mess listing");
+    },
+  });
+
   const submitModerationMutation = useMutation({
     mutationFn: async ({ targetType, targetId }: { targetType: string; targetId: string }) => {
+      // The moderation queue does not accept mess listings yet, so they are
+      // resubmitted by moving the listing itself back to PENDING_REVIEW.
+      if (targetType === "MESS") {
+        return updateMess(targetId, { status: "PENDING_REVIEW" });
+      }
       return fetchApi("/moderation/submit", {
         method: "POST",
         body: JSON.stringify({ targetType, targetId }),
@@ -105,20 +141,35 @@ export function MyListingsPage() {
       toast.success("Listing submitted for admin moderation review!");
       queryClient.invalidateQueries({ queryKey: ["owner-my-listings"] });
       queryClient.invalidateQueries({ queryKey: ["owner-my-libraries"] });
+      queryClient.invalidateQueries({ queryKey: ["owner-my-messes"] });
     },
     onError: (err: unknown) => {
       toast.error(err instanceof Error ? err.message : "Failed to submit listing for review");
     },
   });
 
-  const isLoading = isLibraryOwner ? isLibraryLoading : isAccomLoading;
-  const isError = isLibraryOwner ? isLibraryError : isAccomError;
-  const refetch = isLibraryOwner ? refetchLibrary : refetchAccom;
+  const isLoading = isLibraryOwner
+    ? isLibraryLoading
+    : isMessOwner
+      ? isMessLoading
+      : isAccomLoading;
+  const isError = isLibraryOwner ? isLibraryError : isMessOwner ? isMessError : isAccomError;
+  const refetch = isLibraryOwner ? refetchLibrary : isMessOwner ? refetchMess : refetchAccom;
 
-  const rawItems = isLibraryOwner ? libraryData?.items || [] : accomData?.items || [];
-  const stats = isLibraryOwner ? libraryData?.stats : accomData?.stats;
+  const rawItems = isLibraryOwner
+    ? libraryData?.items || []
+    : isMessOwner
+      ? messData?.items || []
+      : accomData?.items || [];
+  const stats = isLibraryOwner
+    ? libraryData?.stats
+    : isMessOwner
+      ? messData?.stats
+      : accomData?.stats;
 
-  const filteredItems = (rawItems as (AccomListingItem | LibraryListingItem)[]).filter((item) => {
+  const filteredItems = (
+    rawItems as (AccomListingItem | LibraryListingItem | MessListingItem)[]
+  ).filter((item) => {
     const status = (item.status || "DRAFT").toUpperCase();
     if (activeTab === "all") return true;
     if (activeTab === "published" || activeTab === "APPROVED")
@@ -131,11 +182,22 @@ export function MyListingsPage() {
     return true;
   });
 
-  const pageTitle = isLibraryOwner ? "My Libraries" : "My Properties";
+  const pageTitle = isLibraryOwner ? "My Libraries" : isMessOwner ? "My Messes" : "My Properties";
   const pageSubtitle = isLibraryOwner
     ? "Manage your study space listings, review statuses, and seat availability."
-    : "Manage your property listings, review statuses, and availability.";
-  const addUrl = isLibraryOwner ? "/owner/libraries/new" : "/owner/accommodations/new";
+    : isMessOwner
+      ? "Manage your mess and tiffin listings, weekly menus, and meal plans."
+      : "Manage your property listings, review statuses, and availability.";
+  const addUrl = isLibraryOwner
+    ? "/owner/libraries/new"
+    : isMessOwner
+      ? "/owner/mess/new"
+      : "/owner/accommodations/new";
+  const addLabel = isLibraryOwner
+    ? "Add new library"
+    : isMessOwner
+      ? "Add new mess"
+      : "Add new property";
 
   return (
     <DashboardShell
@@ -159,7 +221,7 @@ export function MyListingsPage() {
 
         <Button asChild className="shrink-0 gap-1.5">
           <Link to={addUrl}>
-            <Plus className="h-4 w-4" /> {isLibraryOwner ? "Add new library" : "Add new property"}
+            <Plus className="h-4 w-4" /> {addLabel}
           </Link>
         </Button>
       </div>
@@ -171,18 +233,30 @@ export function MyListingsPage() {
           <ErrorState onRetry={() => refetch()} />
         ) : filteredItems.length === 0 ? (
           <EmptyState
-            title={isLibraryOwner ? "No library listings found" : "No property listings found"}
+            title={
+              isLibraryOwner
+                ? "No library listings found"
+                : isMessOwner
+                  ? "No mess listings found"
+                  : "No property listings found"
+            }
             description={
               activeTab === "all"
                 ? isLibraryOwner
                   ? "You haven't created any study library listings yet."
-                  : "You haven't created any property listings yet."
+                  : isMessOwner
+                    ? "You haven't created any mess or tiffin listings yet."
+                    : "You haven't created any property listings yet."
                 : `No listings found matching tab filter "${activeTab}".`
             }
             action={
               <Button asChild>
                 <Link to={addUrl}>
-                  {isLibraryOwner ? "Create Library Listing" : "Create Property Listing"}
+                  {isLibraryOwner
+                    ? "Create Library Listing"
+                    : isMessOwner
+                      ? "Create Mess Listing"
+                      : "Create Property Listing"}
                 </Link>
               </Button>
             }
@@ -192,27 +266,43 @@ export function MyListingsPage() {
             {filteredItems.map((rawItem) => {
               const status = rawItem.status || "DRAFT";
               const normStatus = status.toUpperCase();
-              const isLib = isLibraryOwner || "seatCapacity" in rawItem;
+              const isMess = isMessOwner || "providerType" in rawItem;
+              const isLib = !isMess && (isLibraryOwner || "seatCapacity" in rawItem);
               const libItem = rawItem as LibraryListingItem;
+              const messItem = rawItem as MessListingItem;
               const accomItem = rawItem as AccomListingItem;
 
-              const title = isLib ? libItem.name : accomItem.title;
+              const title = isMess ? messItem.name : isLib ? libItem.name : accomItem.title;
               const image =
                 rawItem.images && rawItem.images.length > 0
                   ? rawItem.images[0]
                   : "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=800&q=80";
 
-              const area = isLib ? libItem.area : accomItem.location?.area;
-              const city = isLib
-                ? libItem.location?.city || "indore"
-                : accomItem.location?.city || "indore";
-              const price = isLib ? libItem.pricing?.monthlyFee : accomItem.monthlyRent;
-              const viewUrl = isLib ? `/libraries/${rawItem.id}` : `/accommodations/${rawItem.id}`;
-              const editUrl = isLib
-                ? `/owner/libraries/${rawItem.id}/edit`
-                : `/owner/accommodations/${rawItem.id}/edit`;
+              const area = isMess ? messItem.area : isLib ? libItem.area : accomItem.location?.area;
+              const city = isMess
+                ? messItem.location?.city || "indore"
+                : isLib
+                  ? libItem.location?.city || "indore"
+                  : accomItem.location?.city || "indore";
 
-              const targetType = isLib ? "LIBRARY" : "ACCOMMODATION";
+              const detailsLine = isMess
+                ? `${PROVIDER_TYPE_LABELS[messItem.providerType] || messItem.providerType} · from ₹${(messItem.pricing?.startingMealPrice || 0).toLocaleString("en-IN")}/meal`
+                : isLib
+                  ? `${libItem.availableSeats || 0}/${libItem.seatCapacity || 0} seats available · ₹${(libItem.pricing?.monthlyFee || 0).toLocaleString("en-IN")}/mo`
+                  : `${accomItem.propertyType} · ₹${(accomItem.monthlyRent || 0).toLocaleString("en-IN")}/mo`;
+
+              const viewUrl = isMess
+                ? `/mess/${messItem.slug || rawItem.id}`
+                : isLib
+                  ? `/libraries/${rawItem.id}`
+                  : `/accommodations/${rawItem.id}`;
+              const editUrl = isMess
+                ? `/owner/mess/${rawItem.id}/edit`
+                : isLib
+                  ? `/owner/libraries/${rawItem.id}/edit`
+                  : `/owner/accommodations/${rawItem.id}/edit`;
+
+              const targetType = isMess ? "MESS" : isLib ? "LIBRARY" : "ACCOMMODATION";
 
               return (
                 <div
@@ -232,11 +322,7 @@ export function MyListingsPage() {
                       </div>
 
                       <p className="text-xs text-muted-foreground">
-                        {area}, {city} ·{" "}
-                        {isLib
-                          ? `${libItem.availableSeats || 0}/${libItem.seatCapacity || 0} seats available`
-                          : accomItem.propertyType}{" "}
-                        · ₹{(price || 0).toLocaleString("en-IN")}/mo
+                        {area}, {city} · {detailsLine}
                       </p>
 
                       {/* Admin Rejection Notes Banner */}
@@ -289,7 +375,7 @@ export function MyListingsPage() {
                         onClick={() =>
                           submitModerationMutation.mutate({ targetType, targetId: rawItem.id })
                         }
-                        className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+                        className="h-8 text-xs font-semibold"
                       >
                         <Send className="mr-1.5 h-3.5 w-3.5" />{" "}
                         {normStatus === "REJECTED" ? "Resubmit for Review" : "Submit for Review"}
@@ -317,9 +403,11 @@ export function MyListingsPage() {
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() =>
-                              isLib
-                                ? deleteLibraryMutation.mutate(rawItem.id)
-                                : deleteAccomMutation.mutate(rawItem.id)
+                              isMess
+                                ? deleteMessMutation.mutate(rawItem.id)
+                                : isLib
+                                  ? deleteLibraryMutation.mutate(rawItem.id)
+                                  : deleteAccomMutation.mutate(rawItem.id)
                             }
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >

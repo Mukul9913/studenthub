@@ -1,7 +1,7 @@
 import mongoose, { Schema, type Document } from "mongoose";
 
 export interface IReview extends Document {
-  targetType: "ACCOMMODATION" | "LIBRARY" | string;
+  targetType: "ACCOMMODATION" | "LIBRARY" | "MESS" | string;
   targetId: mongoose.Types.ObjectId;
   ownerId: mongoose.Types.ObjectId;
   studentId: mongoose.Types.ObjectId;
@@ -27,7 +27,12 @@ export interface IReview extends Document {
 
 const ReviewSchema = new Schema<IReview>(
   {
-    targetType: { type: String, required: true, enum: ["ACCOMMODATION", "LIBRARY"], index: true },
+    targetType: {
+      type: String,
+      required: true,
+      enum: ["ACCOMMODATION", "LIBRARY", "MESS"],
+      index: true,
+    },
     targetId: { type: Schema.Types.ObjectId, required: true, index: true },
     ownerId: { type: Schema.Types.ObjectId, required: true, ref: "User", index: true },
     studentId: { type: Schema.Types.ObjectId, required: true, ref: "User", index: true },

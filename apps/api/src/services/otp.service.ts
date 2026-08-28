@@ -7,6 +7,7 @@ import {
 } from "./email/email.templates.js";
 import { AppError } from "../errors/app-error.js";
 import { pinoLogger } from "../utils/logger.js";
+import { env } from "../config/env.js";
 
 const OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 Minutes
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000; // 60 Seconds
@@ -65,19 +66,38 @@ export async function sendOtp(
   user.emailOtpAttempts = 0;
   await user.save();
 
-  const html = renderOtpEmailTemplate(user.firstName || "User", rawOtp, purpose);
-  const subject =
-    purpose === "VERIFY_EMAIL"
-      ? "Verify Your Email - StudentHub OTP Code"
-      : "Reset Your Password - StudentHub OTP Code";
+  // Development aid: always log OTP so local testing works even if Gmail blocks SMTP
+  if (env.NODE_ENV !== "production") {
+    pinoLogger.warn(
+      { email: user.email, purpose, otp: rawOtp },
+      `[DEV] OTP for ${user.email}: ${rawOtp} (also attempting SMTP email)`,
+    );
+  }
 
-  await sendEmail({
-    to: user.email,
-    subject,
-    html,
-  });
+  try {
+    const html = renderOtpEmailTemplate(user.firstName || "User", rawOtp, purpose);
+    const subject =
+      purpose === "VERIFY_EMAIL"
+        ? "Verify Your Email - StudentHub OTP Code"
+        : "Reset Your Password - StudentHub OTP Code";
 
-  pinoLogger.info({ email: user.email, purpose }, "OTP email dispatched successfully");
+    await sendEmail({
+      to: user.email,
+      subject,
+      html,
+    });
+
+    pinoLogger.info({ email: user.email, purpose }, "OTP email dispatched successfully");
+  } catch (err) {
+    pinoLogger.error(
+      { email: user.email, purpose, err },
+      "OTP email SMTP send failed — use DEV OTP from logs if in development",
+    );
+    // In development, OTP is still valid (stored in DB) even if email fails
+    if (env.NODE_ENV === "production") {
+      throw err;
+    }
+  }
 
   return {
     success: true,

@@ -227,7 +227,7 @@ export function AdminModerationPage() {
         <div className="flex items-center justify-between">
           <Badge
             variant="outline"
-            className="gap-1.5 bg-indigo-50 text-indigo-700 border-indigo-200 py-1 px-2.5"
+            className="gap-1.5 bg-primary/10 text-primary border-primary/20 py-1 px-2.5"
           >
             <ShieldCheck className="h-4 w-4" /> Moderation Control Engine
           </Badge>
@@ -252,11 +252,11 @@ export function AdminModerationPage() {
               <p className="text-2xl font-bold text-amber-900 mt-1">{analytics.pendingCount}</p>
             </div>
 
-            <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 shadow-sm">
-              <span className="text-xs font-semibold text-indigo-700 flex items-center gap-1">
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 shadow-sm">
+              <span className="text-xs font-semibold text-primary flex items-center gap-1">
                 <Eye className="h-3.5 w-3.5" /> Under Review
               </span>
-              <p className="text-2xl font-bold text-indigo-900 mt-1">
+              <p className="text-2xl font-bold text-foreground mt-1">
                 {analytics.underReviewCount}
               </p>
             </div>
@@ -279,11 +279,11 @@ export function AdminModerationPage() {
               </p>
             </div>
 
-            <div className="rounded-xl border border-purple-200 bg-purple-50/50 p-4 shadow-sm">
-              <span className="text-xs font-semibold text-purple-700 flex items-center gap-1">
+            <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 shadow-sm">
+              <span className="text-xs font-semibold text-destructive flex items-center gap-1">
                 <AlertOctagon className="h-3.5 w-3.5" /> Total Suspended
               </span>
-              <p className="text-2xl font-bold text-purple-900 mt-1">{analytics.totalSuspended}</p>
+              <p className="text-2xl font-bold text-foreground mt-1">{analytics.totalSuspended}</p>
             </div>
           </div>
         )}
@@ -430,7 +430,7 @@ export function AdminModerationPage() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => setSuspendItem(item)}
-                                className="h-7 text-[11px] text-purple-700 border-purple-300 hover:bg-purple-50 px-2"
+                                className="h-7 text-[11px] text-destructive border-destructive/30 hover:bg-destructive/10 px-2"
                               >
                                 Suspend
                               </Button>
@@ -566,7 +566,7 @@ export function AdminModerationPage() {
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle className="text-sm font-bold flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-indigo-600" /> Moderation Audit Timeline
+                <MessageSquare className="h-4 w-4 text-primary" /> Moderation Audit Timeline
               </DialogTitle>
             </DialogHeader>
 
@@ -575,7 +575,7 @@ export function AdminModerationPage() {
                 <p className="text-xs text-muted-foreground">No moderation history recorded yet.</p>
               ) : (
                 historyLogs.map((log) => (
-                  <div key={log.id} className="border-l-2 border-indigo-500 pl-3 py-1 space-y-1">
+                  <div key={log.id} className="border-l-2 border-primary pl-3 py-1 space-y-1">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-foreground">{log.action}</span>
                       <span className="text-[10px] text-muted-foreground">
