@@ -5,6 +5,17 @@ const locationSchema = z.object({
   city: z.string().min(1, "City is required").trim().toLowerCase(),
   state: z.string().min(1, "State is required").trim(),
   zipCode: z.string().min(1, "Zip code is required").trim(),
+  pincode: z.string().trim().optional(),
+  formattedAddress: z.string().trim().optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+  googlePlaceId: z.string().trim().optional(),
+  coordinates: z
+    .object({
+      type: z.literal("Point"),
+      coordinates: z.tuple([z.number(), z.number()]),
+    })
+    .optional(),
 });
 
 const contactSchema = z.object({

@@ -8,6 +8,13 @@ export { RefreshTokenModel, type IRefreshToken } from "./refresh-token.model.js"
 export { PropertyModel, type IProperty } from "./property.model.js";
 export { RoomModel, type IRoom } from "./room.model.js";
 export { LibraryModel, type ILibrary } from "./library.model.js";
+export {
+  MessModel,
+  type IMess,
+  type IMessMealPlan,
+  type IMessDayMenu,
+  type IMessMenuItem,
+} from "./mess.model.js";
 export { EnquiryModel, type IEnquiry } from "./enquiry.model.js";
 
 // Recommendation Engine

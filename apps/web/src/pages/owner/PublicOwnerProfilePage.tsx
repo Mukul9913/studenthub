@@ -1,8 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ShieldCheck, Star, Zap, Award, TrendingUp } from "lucide-react";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { SiteLayout } from "@/components/layout/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -27,29 +26,25 @@ export function PublicOwnerProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
-        <Navbar />
-        <main className="flex-1 py-16">
+      <SiteLayout>
+        <div className="py-16">
           <LoadingState />
-        </main>
-        <Footer />
-      </div>
+        </div>
+      </SiteLayout>
     );
   }
 
   if (isError || !owner) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
-        <Navbar />
-        <main className="flex-1 py-16">
+      <SiteLayout>
+        <div className="py-16">
           <ErrorState
             title="Owner Profile Not Found"
             description="The owner profile you are looking for does not exist."
             onRetry={refetch}
           />
-        </main>
-        <Footer />
-      </div>
+        </div>
+      </SiteLayout>
     );
   }
 
@@ -58,23 +53,21 @@ export function PublicOwnerProfilePage() {
   const listings = owner.listings || [];
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Navbar />
-
-      <main className="flex-1 py-8">
+    <SiteLayout>
+      <div className="py-8">
         <div className="mx-auto max-w-6xl px-4 md:px-6 space-y-8">
           {/* Owner Profile Banner Card */}
-          <Card className="overflow-hidden border border-border bg-gradient-to-br from-card via-card to-primary/5">
+          <Card className="overflow-hidden border border-border bg-card">
             <CardContent className="p-6 md:p-8">
               <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-start gap-5">
-                  <div className="h-20 w-20 rounded-2xl bg-primary text-primary-foreground font-extrabold grid place-items-center text-2xl uppercase shadow-md shrink-0">
+                  <div className="h-20 w-20 rounded-2xl bg-primary text-primary-foreground font-extrabold grid place-items-center text-2xl uppercase shrink-0">
                     {owner.name.charAt(0)}
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
                         {owner.name}
                       </h1>
                       {owner.isVerified && (
@@ -94,7 +87,7 @@ export function PublicOwnerProfilePage() {
                         <Badge
                           key={b.id}
                           variant="outline"
-                          className="text-[10px] uppercase font-bold border-purple-200 bg-purple-50 text-purple-600 gap-1"
+                          className="text-[10px] uppercase font-bold border-primary/20 bg-primary/10 text-primary gap-1"
                         >
                           <Award className="h-3 w-3" /> {b.name}
                         </Badge>
@@ -104,7 +97,7 @@ export function PublicOwnerProfilePage() {
                 </div>
 
                 {/* Score Dial Badge */}
-                <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-4 text-center min-w-[140px] shadow-sm">
+                <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card p-4 text-center min-w-[140px]">
                   <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Performance Score
                   </span>
@@ -143,7 +136,7 @@ export function PublicOwnerProfilePage() {
                 <span className="text-3xl font-extrabold text-foreground">
                   {owner.totalReviewsCount}
                 </span>
-                <Award className="h-6 w-6 text-purple-600" />
+                <Award className="h-6 w-6 text-primary" />
               </CardContent>
             </Card>
 
@@ -236,9 +229,7 @@ export function PublicOwnerProfilePage() {
             </div>
           </div>
         </div>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </SiteLayout>
   );
 }

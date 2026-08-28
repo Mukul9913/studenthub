@@ -32,6 +32,12 @@ import {
   type CreateAccommodationPayload,
 } from "../../features/accommodation/schemas";
 import { ApiError } from "../../services/api";
+import {
+  DEFAULT_INDORE_LAT,
+  DEFAULT_INDORE_LNG,
+  buildGeoLocationPayload,
+  patchFromGeocode,
+} from "../../lib/location-helpers";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -60,10 +66,6 @@ const STEPS = [
   "Review",
 ] as const;
 
-// Default coordinates for Indore
-const INDORE_LNG = 75.8577;
-const INDORE_LAT = 22.7196;
-
 /* ------------------------------------------------------------------ */
 /*  Form state                                                         */
 /* ------------------------------------------------------------------ */
@@ -75,8 +77,10 @@ interface FormState {
   area: string;
   address: string;
   zipCode: string;
-  latitude?: string;
-  longitude?: string;
+  latitude: number;
+  longitude: number;
+  googlePlaceId?: string;
+  formattedAddress?: string;
   nearbyCollege: string;
   nearbyCompany: string;
   rent: string;
@@ -97,8 +101,8 @@ const EMPTY: FormState = {
   area: "",
   address: "",
   zipCode: "",
-  latitude: "22.7196",
-  longitude: "75.8577",
+  latitude: DEFAULT_INDORE_LAT,
+  longitude: DEFAULT_INDORE_LNG,
   nearbyCollege: "",
   nearbyCompany: "",
   rent: "",
@@ -228,16 +232,14 @@ export function CreateAccommodationPage() {
         title: form.title.trim(),
         description: form.description.trim(),
         propertyType: form.propertyType,
-        location: {
-          address: form.address.trim(),
-          city: "indore",
-          state: "Madhya Pradesh",
-          zipCode: form.zipCode.trim() || "452001",
-          coordinates: {
-            type: "Point",
-            coordinates: [INDORE_LNG, INDORE_LAT],
-          },
-        },
+        location: buildGeoLocationPayload({
+          address: form.address,
+          zipCode: form.zipCode,
+          latitude: form.latitude,
+          longitude: form.longitude,
+          googlePlaceId: form.googlePlaceId,
+          formattedAddress: form.formattedAddress,
+        }),
         area: form.area,
         nearbyColleges,
         nearbyCompanies,
@@ -369,11 +371,16 @@ export function CreateAccommodationPage() {
               <DraggableMapPicker
                 initialAddress={form.address}
                 initialCity="Indore"
+                initialLatitude={form.latitude}
+                initialLongitude={form.longitude}
                 onLocationChange={(loc) => {
-                  if (loc.address) set("address", loc.address);
-                  if (loc.pincode) set("zipCode", loc.pincode);
-                  if (loc.latitude) set("latitude", loc.latitude as unknown as string);
-                  if (loc.longitude) set("longitude", loc.longitude as unknown as string);
+                  const patch = patchFromGeocode(loc);
+                  setForm((prev) => ({
+                    ...prev,
+                    ...patch,
+                    zipCode: patch.zipCode || prev.zipCode,
+                    area: patch.area || prev.area,
+                  }));
                 }}
               />
             </div>

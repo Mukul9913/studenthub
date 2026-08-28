@@ -3,8 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Search, SlidersHorizontal, MapPin, X, RotateCcw, BookOpen } from "lucide-react";
 
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { SiteLayout } from "@/components/layout/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -132,10 +131,7 @@ export function LibrariesPage() {
     (is24x7 ? 1 : 0);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
-
-      <main className="flex-1">
+    <SiteLayout>
         {/* Banner Section */}
         <section className="border-b border-border bg-card py-10 px-4 md:px-6">
           <div className="mx-auto max-w-7xl">
@@ -420,9 +416,6 @@ export function LibrariesPage() {
             </div>
           )}
         </section>
-      </main>
-
-      <Footer />
-    </div>
+    </SiteLayout>
   );
 }

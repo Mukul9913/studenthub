@@ -15,10 +15,29 @@ export type PropertyTypeConstant = (typeof PROPERTY_TYPES)[number];
 export const LIBRARY_TYPES = ["silent_study", "digital", "co_working", "traditional"] as const;
 export type LibraryTypeConstant = (typeof LIBRARY_TYPES)[number];
 
+export const MESS_PROVIDER_TYPES = [
+  "mess",
+  "tiffin",
+  "home_kitchen",
+  "cloud_kitchen",
+  "catering",
+] as const;
+export type MessProviderTypeConstant = (typeof MESS_PROVIDER_TYPES)[number];
+
+export const MEAL_TYPES = ["breakfast", "lunch", "dinner"] as const;
+export type MealTypeConstant = (typeof MEAL_TYPES)[number];
+
+export const FOOD_PREFERENCES = ["vegetarian", "non_vegetarian", "jain", "eggetarian"] as const;
+export type FoodPreferenceConstant = (typeof FOOD_PREFERENCES)[number];
+
+export const MEAL_PLAN_DURATIONS = ["daily", "weekly", "15_day", "monthly", "custom"] as const;
+export type MealPlanDurationConstant = (typeof MEAL_PLAN_DURATIONS)[number];
+
 export const SEARCH_TARGET_TYPES = [
   "ALL",
   "ACCOMMODATION",
   "LIBRARY",
+  "MESS",
   "HOSTEL",
   "COACHING",
   "CAFE",
@@ -103,6 +122,7 @@ export type LeadStatusConstant = (typeof LEAD_STATUS)[number];
 export const LEAD_TARGET_TYPE = [
   "ACCOMMODATION",
   "LIBRARY",
+  "MESS",
   "COACHING",
   "CAFE",
   "PG",
@@ -279,6 +299,8 @@ export const ROUTES = {
   ACCOMMODATION_DETAILS: (id: string) => `/accommodations/${id}`,
   LIBRARIES: "/libraries",
   LIBRARY_DETAILS: (id: string) => `/libraries/${id}`,
+  MESS: "/mess",
+  MESS_DETAILS: (idOrSlug: string) => `/mess/${idOrSlug}`,
   LOGIN: "/login",
   REGISTER: "/register",
   FORBIDDEN: "/403",
@@ -292,6 +314,10 @@ export const ROUTES = {
   OWNER_EDIT_ACCOMMODATION: (id: string) => `/owner/accommodations/${id}/edit`,
   OWNER_CREATE_LIBRARY: "/owner/libraries/new",
   OWNER_EDIT_LIBRARY: (id: string) => `/owner/libraries/${id}/edit`,
+  OWNER_CREATE_MESS: "/owner/mess/new",
+  OWNER_EDIT_MESS: (id: string) => `/owner/mess/${id}/edit`,
+  OWNER_MESS_MENU: (id: string) => `/owner/mess/${id}/menu`,
+  OWNER_MESS_PLANS: (id: string) => `/owner/mess/${id}/plans`,
   OWNER_LEADS: "/owner/leads",
   OWNER_SUBSCRIPTION: "/owner/subscription",
   OWNER_PUBLIC_PROFILE: (id: string) => `/owner/profile/${id}`,
@@ -335,6 +361,13 @@ export const API_ENDPOINTS = {
     BASE: "/libraries",
     BY_ID: (id: string) => `/libraries/${id}`,
     MY_LISTINGS: "/libraries/my-listings",
+  },
+  MESS: {
+    BASE: "/mess",
+    BY_ID: (idOrSlug: string) => `/mess/${idOrSlug}`,
+    MY_LISTINGS: "/mess/owner/my-messes",
+    MENU: (id: string) => `/mess/${id}/menu`,
+    PLANS: (id: string) => `/mess/${id}/plans`,
   },
   ENQUIRIES: {
     BASE: "/enquiries",

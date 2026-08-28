@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Brain,
@@ -11,6 +12,7 @@ import {
   Check,
   Loader2,
 } from "lucide-react";
+import { DashboardShell, USER_SIDEBAR } from "@/components/layout/DashboardShell";
 import { SEOHead } from "../../components/seo/SEOHead";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
@@ -119,6 +121,7 @@ function ChipSelector({
 }
 
 export function StudentPreferencesPage() {
+  const { pathname } = useLocation();
   const queryClient = useQueryClient();
 
   const { data: existing, isLoading } = useQuery({
@@ -159,9 +162,22 @@ export function StudentPreferencesPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <>
+        <SEOHead
+          title="My Preferences | StudentHub"
+          description="Set your college, budget, and area preferences to get personalized listing recommendations."
+        />
+        <DashboardShell
+          title="My Preferences"
+          subtitle="Help us personalize your feed with college, budget, and area preferences."
+          links={USER_SIDEBAR}
+          currentPath={pathname}
+        >
+          <div className="flex h-64 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </DashboardShell>
+      </>
     );
   }
 
@@ -172,19 +188,14 @@ export function StudentPreferencesPage() {
         description="Set your college, budget, and area preferences to get personalized listing recommendations."
       />
 
-      <div className="mx-auto max-w-3xl space-y-6 p-6">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Brain className="h-6 w-6 text-violet-600" />
-              <h1 className="text-2xl font-bold text-foreground">My Preferences</h1>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Help us personalize your feed. These preferences will power your home page
-              recommendations.
-            </p>
-          </div>
+      <DashboardShell
+        title="My Preferences"
+        subtitle="Help us personalize your feed. These preferences power your home page recommendations."
+        links={USER_SIDEBAR}
+        currentPath={pathname}
+      >
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div className="sticky top-20 z-10 -mx-1 flex justify-end bg-background/95 pb-2 pt-1 backdrop-blur supports-[backdrop-filter]:bg-background/80">
           <Button
             onClick={handleSave}
             disabled={mutation.isPending || Object.keys(form).length === 0}
@@ -399,6 +410,7 @@ export function StudentPreferencesPage() {
           </Button>
         </div>
       </div>
+      </DashboardShell>
     </>
   );
 }

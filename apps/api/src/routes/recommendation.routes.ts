@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate } from "../middlewares/auth.middleware.js";
+import { authenticate, optionalAuthenticate } from "../middlewares/auth.middleware.js";
 import {
   getHomeFeed,
   getForYou,
@@ -18,7 +18,7 @@ const router = Router();
 
 // ─── Public ───────────────────────────────────────────────────────────────────
 // Feed works for both authenticated (personalized) and anonymous (trending) users
-router.get("/feed", getHomeFeed);
+router.get("/feed", optionalAuthenticate, getHomeFeed);
 router.get("/trending", getTrending);
 router.get("/popular-near-me", getPopularNear);
 router.get("/similar/:targetType/:targetId", getSimilar);

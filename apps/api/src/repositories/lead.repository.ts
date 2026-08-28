@@ -148,13 +148,24 @@ export class LeadRepository {
     scheduledFollowUpDate?: Date;
     contactChannel?: "CALL" | "WHATSAPP" | "EMAIL" | "IN_PERSON";
   }): Promise<IFollowUp> {
+    const channelToType: Record<string, "CALL" | "WHATSAPP" | "EMAIL" | "VISIT" | "SMS"> = {
+      CALL: "CALL",
+      WHATSAPP: "WHATSAPP",
+      EMAIL: "EMAIL",
+      IN_PERSON: "VISIT",
+    };
+    const type = channelToType[data.contactChannel || "CALL"] || "CALL";
+    const scheduledAt = data.scheduledFollowUpDate ?? new Date();
+    const status = data.scheduledFollowUpDate ? "PENDING" : "COMPLETED";
+
     const followUp = new FollowUpModel({
       leadId: new mongoose.Types.ObjectId(data.leadId),
       ownerId: new mongoose.Types.ObjectId(data.ownerId),
-      note: data.note,
-      scheduledFollowUpDate: data.scheduledFollowUpDate,
-      contactChannel: data.contactChannel || "CALL",
-      status: "COMPLETED",
+      notes: data.note,
+      scheduledAt,
+      type,
+      status,
+      ...(status === "COMPLETED" ? { completedAt: new Date() } : {}),
     });
     return await followUp.save();
   }

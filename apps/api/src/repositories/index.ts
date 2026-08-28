@@ -8,4 +8,5 @@ export { RefreshTokenRepository } from "./refresh-token.repository.js";
 export { PropertyRepository } from "./property.repository.js";
 export { RoomRepository } from "./room.repository.js";
 export { LibraryRepository } from "./library.repository.js";
+export { MessRepository } from "./mess.repository.js";
 export { EnquiryRepository } from "./enquiry.repository.js";

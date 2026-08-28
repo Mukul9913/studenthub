@@ -5,6 +5,7 @@ import { authenticate, requireRoles, validateRequest } from "../middlewares/inde
 import { EnquiryRepository } from "../repositories/enquiry.repository.js";
 import { PropertyRepository } from "../repositories/property.repository.js";
 import { LibraryRepository } from "../repositories/library.repository.js";
+import { MessRepository } from "../repositories/mess.repository.js";
 import { EnquiryService } from "../services/enquiry.service.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { createEnquirySchema, updateEnquiryStatusSchema } from "../validators/enquiry.validator.js";
@@ -12,7 +13,13 @@ import { createEnquirySchema, updateEnquiryStatusSchema } from "../validators/en
 const enquiryRepository = new EnquiryRepository();
 const propertyRepository = new PropertyRepository();
 const libraryRepository = new LibraryRepository();
-const enquiryService = new EnquiryService(enquiryRepository, propertyRepository, libraryRepository);
+const messRepository = new MessRepository();
+const enquiryService = new EnquiryService(
+  enquiryRepository,
+  propertyRepository,
+  libraryRepository,
+  messRepository,
+);
 const enquiryController = new EnquiryController(enquiryService);
 
 export const enquiryRouter: Router = Router();

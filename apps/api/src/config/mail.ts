@@ -21,13 +21,19 @@ export type SmtpConfig = z.infer<typeof smtpConfigSchema>;
  * Validated SMTP Configuration extracted from environment.
  */
 function parseSmtpConfig(): SmtpConfig {
+  const rawPass = String(env.SMTP_PASS || "").replace(/\s+/g, ""); // Gmail app passwords: spaces optional
+  const rawFrom = String(env.MAIL_FROM || env.SMTP_FROM || "")
+    .trim()
+    .replace(/^["']|["']$/g, ""); // strip accidental .env quotes
+
   const rawConfig = {
     host: env.SMTP_HOST,
     port: Number(env.SMTP_PORT),
-    secure: Boolean(env.SMTP_SECURE),
+    // Never use Boolean("false") — that is true in JS
+    secure: env.SMTP_SECURE === true || env.SMTP_SECURE === "true",
     user: env.SMTP_USER,
-    pass: env.SMTP_PASS,
-    from: env.MAIL_FROM,
+    pass: rawPass,
+    from: rawFrom || `StudentHub <${env.SMTP_USER}>`,
   };
 
   const parsed = smtpConfigSchema.safeParse(rawConfig);

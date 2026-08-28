@@ -3,7 +3,7 @@ import mongoose, { Schema, type Document } from "mongoose";
 export interface IEnquiry extends Document {
   userId: mongoose.Types.ObjectId;
   ownerId: mongoose.Types.ObjectId;
-  targetType: "ACCOMMODATION" | "LIBRARY";
+  targetType: "ACCOMMODATION" | "LIBRARY" | "MESS";
   targetId: mongoose.Types.ObjectId;
   message: string;
   status: "NEW" | "CONTACTED" | "VISIT_SCHEDULED" | "CONVERTED" | "CLOSED";
@@ -25,7 +25,7 @@ const enquirySchema = new Schema<IEnquiry>(
     },
     targetType: {
       type: String,
-      enum: ["ACCOMMODATION", "LIBRARY"],
+      enum: ["ACCOMMODATION", "LIBRARY", "MESS"],
       required: [true, "Target type is required"],
     },
     targetId: {

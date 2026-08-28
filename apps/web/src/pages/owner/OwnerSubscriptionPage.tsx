@@ -186,7 +186,7 @@ export function OwnerSubscriptionPage() {
       currentPath="/owner/subscription"
     >
       {/* Current Subscription Banner */}
-      <div className="overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-card to-purple-500/10 p-6 shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-card to-primary/5 p-6 shadow-sm">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -317,7 +317,7 @@ export function OwnerSubscriptionPage() {
             <CardDescription className="text-xs font-medium uppercase font-semibold">
               Promotions Active
             </CardDescription>
-            <CardTitle className="text-2xl font-bold text-purple-600">
+            <CardTitle className="text-2xl font-bold text-primary">
               {usage?.featuredListingsUsed || 0} Promoted
             </CardTitle>
           </CardHeader>
@@ -432,7 +432,7 @@ export function OwnerSubscriptionPage() {
                         </div>
                       )}
                       {p.features.homepageBanner && (
-                        <div className="flex items-center gap-2 font-medium text-purple-600">
+                        <div className="flex items-center gap-2 font-medium text-primary">
                           <CheckCircle2 className="h-4 w-4 shrink-0" />
                           <span>Homepage Banner Placement</span>
                         </div>
@@ -485,7 +485,7 @@ export function OwnerSubscriptionPage() {
                 <CardHeader>
                   <Badge
                     variant="outline"
-                    className="w-fit mb-2 text-[10px] uppercase font-bold border-purple-200 bg-purple-50 text-purple-600"
+                    className="w-fit mb-2 text-[10px] uppercase font-bold border-primary/20 bg-primary/10 text-primary"
                   >
                     {s.category}
                   </Badge>

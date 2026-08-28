@@ -16,7 +16,7 @@ export function LibraryCard({ item }: { item: Library }) {
   const hasPower = facilities.includes("power_backup");
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition hover:border-primary/50 hover:shadow-md">
+    <div className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition duration-200 hover:border-primary/40 hover:shadow-md">
       {/* Cover image */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
         <img

@@ -163,7 +163,7 @@ export function OwnerListingAnalyticsPage() {
                   icon: Bookmark,
                   label: "Total Saves",
                   value: data.totalSaves.toLocaleString("en-IN"),
-                  color: "text-violet-600",
+                  color: "text-primary",
                 },
                 {
                   icon: Users,

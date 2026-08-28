@@ -70,7 +70,7 @@ export function AdminOwnersPage() {
         );
       case "service_provider":
         return (
-          <Badge className="bg-purple-500/10 text-purple-600 border-purple-200">
+          <Badge className="bg-primary/10 text-primary border-primary/20">
             Service Provider
           </Badge>
         );

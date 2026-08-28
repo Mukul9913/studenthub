@@ -4,6 +4,7 @@ import { LeadService } from "../services/lead.service.js";
 import { LeadRepository } from "../repositories/lead.repository.js";
 import { PropertyRepository } from "../repositories/property.repository.js";
 import { LibraryRepository } from "../repositories/library.repository.js";
+import { MessRepository } from "../repositories/mess.repository.js";
 import { authenticate, authorize } from "../middlewares/auth.middleware.js";
 import { validateRequest } from "../middlewares/validate-request.js";
 import {
@@ -15,7 +16,13 @@ import {
 const leadRepository = new LeadRepository();
 const propertyRepository = new PropertyRepository();
 const libraryRepository = new LibraryRepository();
-const leadService = new LeadService(leadRepository, propertyRepository, libraryRepository);
+const messRepository = new MessRepository();
+const leadService = new LeadService(
+  leadRepository,
+  propertyRepository,
+  libraryRepository,
+  messRepository,
+);
 const leadController = new LeadController(leadService);
 
 export const leadRouter: Router = Router();

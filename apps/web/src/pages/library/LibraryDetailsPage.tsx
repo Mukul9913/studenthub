@@ -13,8 +13,7 @@ import {
   Heart,
 } from "lucide-react";
 
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { SiteLayout } from "@/components/layout/SiteLayout";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { StickyContactCard } from "@/components/common/StickyContactCard";
 import { RecommendationSection } from "@/components/search/RecommendationSection";
@@ -99,21 +98,18 @@ export function LibraryDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
-        <Navbar />
-        <main className="flex-1 py-16">
+      <SiteLayout>
+        <div className="py-16">
           <LoadingState />
-        </main>
-        <Footer />
-      </div>
+        </div>
+      </SiteLayout>
     );
   }
 
   if (isError || !item) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
-        <Navbar />
-        <main className="flex-1 py-16">
+      <SiteLayout>
+        <div className="py-16">
           <ErrorState
             title="Study Space Not Found"
             description="The library or study desk listing you are looking for does not exist or has been unlisted."
@@ -121,9 +117,8 @@ export function LibraryDetailsPage() {
               refetch();
             }}
           />
-        </main>
-        <Footer />
-      </div>
+        </div>
+      </SiteLayout>
     );
   }
 
@@ -131,16 +126,15 @@ export function LibraryDetailsPage() {
   const activeImgUrl = galleryImages[activeImage] || DEFAULT_COVER;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <SiteLayout>
       <SEOHead
         title={`${item.name} in ${item.area}, Indore`}
         description={item.description}
         image={galleryImages[0]}
         jsonLd={jsonLd}
       />
-      <Navbar />
 
-      <main className="flex-1 py-8">
+      <div className="py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
           <div className="mb-6 flex items-center justify-between">
@@ -357,9 +351,7 @@ export function LibraryDetailsPage() {
             targetArea={item.area}
           />
         </div>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </SiteLayout>
   );
 }

@@ -171,9 +171,9 @@ export function GlobalSearchBar({
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     {item.category === "LIBRARY" ? (
-                      <BookOpen className="h-4 w-4 text-indigo-600 shrink-0" />
+                      <BookOpen className="h-4 w-4 text-primary shrink-0" />
                     ) : (
-                      <Building2 className="h-4 w-4 text-purple-600 shrink-0" />
+                      <Building2 className="h-4 w-4 text-primary shrink-0" />
                     )}
                     <span className="font-semibold text-foreground truncate">{item.title}</span>
                   </div>
@@ -195,7 +195,7 @@ export function GlobalSearchBar({
           {trendingAreas.length > 0 && (
             <div className="pt-2 border-t border-border space-y-2">
               <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                <TrendingUp className="h-3.5 w-3.5 text-indigo-600" /> Trending Localities in Indore
+                <TrendingUp className="h-3.5 w-3.5 text-primary" /> Trending Localities in Indore
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {trendingAreas.map((area) => (

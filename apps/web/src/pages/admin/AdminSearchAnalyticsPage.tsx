@@ -68,7 +68,7 @@ export function AdminSearchAnalyticsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="rounded-xl border border-border bg-card p-4 shadow-sm space-y-1">
               <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                <Search className="h-4 w-4 text-purple-600" /> Total Marketplace Searches
+                <Search className="h-4 w-4 text-primary" /> Total Marketplace Searches
               </span>
               <p className="text-2xl font-bold text-foreground">
                 {analytics.totalSearches.toLocaleString()}
@@ -84,11 +84,11 @@ export function AdminSearchAnalyticsPage() {
               </p>
             </div>
 
-            <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 shadow-sm space-y-1">
-              <span className="text-xs font-semibold text-indigo-700 flex items-center gap-1">
-                <TrendingUp className="h-4 w-4 text-indigo-600" /> Top Locality Demand
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 shadow-sm space-y-1">
+              <span className="text-xs font-semibold text-primary flex items-center gap-1">
+                <TrendingUp className="h-4 w-4 text-primary" /> Top Locality Demand
               </span>
-              <p className="text-2xl font-bold text-indigo-900">
+              <p className="text-2xl font-bold text-foreground">
                 {analytics.topAreas[0]?.area || "Bhawarkua"}
               </p>
             </div>
@@ -116,7 +116,7 @@ export function AdminSearchAnalyticsPage() {
             {/* Top Searched Keywords */}
             <div className="rounded-2xl border border-border bg-card p-5 space-y-4 shadow-sm">
               <h3 className="font-bold text-foreground text-sm flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-purple-600" /> Top Searched Keywords & Colleges
+                <TrendingUp className="h-4 w-4 text-primary" /> Top Searched Keywords & Colleges
               </h3>
               <div className="space-y-2">
                 {analytics.topKeywords.length === 0 ? (

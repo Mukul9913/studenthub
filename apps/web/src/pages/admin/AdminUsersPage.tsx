@@ -150,7 +150,7 @@ export function AdminUsersPage() {
                             u.role === "owner"
                               ? "bg-amber-500/10 text-amber-600"
                               : u.role === "admin"
-                                ? "bg-purple-500/10 text-purple-600"
+                                ? "bg-primary/10 text-primary"
                                 : "bg-blue-500/10 text-blue-600"
                           }
                         >

@@ -38,20 +38,20 @@ const STAGES = [
   {
     key: "CONTACTED",
     label: "Contacted",
-    color: "bg-indigo-100 text-indigo-700 border-indigo-200",
-    dot: "bg-indigo-500",
+    color: "bg-primary/10 text-primary border-primary/20",
+    dot: "bg-primary",
   },
   {
     key: "VISIT_SCHEDULED",
     label: "Visit Scheduled",
-    color: "bg-violet-100 text-violet-700 border-violet-200",
-    dot: "bg-violet-500",
+    color: "bg-primary/10 text-primary border-primary/30",
+    dot: "bg-primary",
   },
   {
     key: "VISITED",
     label: "Visited",
-    color: "bg-amber-100 text-amber-700 border-amber-200",
-    dot: "bg-amber-500",
+    color: "bg-primary/10 text-primary border-primary/30",
+    dot: "bg-primary",
   },
   {
     key: "NEGOTIATION",

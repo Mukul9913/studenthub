@@ -14,6 +14,11 @@ export interface CreateLibraryPayload {
     city: string;
     state: string;
     zipCode: string;
+    pincode?: string;
+    formattedAddress?: string;
+    latitude?: number;
+    longitude?: number;
+    googlePlaceId?: string;
     coordinates?: {
       type: "Point";
       coordinates: [number, number];
@@ -223,6 +228,11 @@ export class LibraryService {
       location: {
         ...payload.location,
         city: "indore",
+        latitude: payload.location.latitude,
+        longitude: payload.location.longitude,
+        googlePlaceId: payload.location.googlePlaceId,
+        formattedAddress: payload.location.formattedAddress,
+        pincode: payload.location.pincode || payload.location.zipCode,
         coordinates: payload.location.coordinates || {
           type: "Point",
           coordinates: defaultCoords,

@@ -117,6 +117,11 @@ export interface PropertyLocation {
   city: CitySlug | string;
   state: string;
   zipCode: string;
+  pincode?: string;
+  formattedAddress?: string;
+  latitude?: number;
+  longitude?: number;
+  googlePlaceId?: string;
   coordinates: GeoLocation;
 }
 
@@ -213,6 +218,11 @@ export interface LibraryLocation {
   city: string;
   state: string;
   zipCode: string;
+  pincode?: string;
+  formattedAddress?: string;
+  latitude?: number;
+  longitude?: number;
+  googlePlaceId?: string;
   coordinates: GeoLocation;
 }
 
@@ -267,7 +277,138 @@ export interface Library {
   updatedAt: string;
 }
 
-export type EnquiryTargetType = "ACCOMMODATION" | "LIBRARY";
+/**
+ * Mess / Tiffin Marketplace Domain Models
+ */
+export type MessProviderType = "mess" | "tiffin" | "home_kitchen" | "cloud_kitchen" | "catering";
+
+export type MealType = "breakfast" | "lunch" | "dinner";
+
+export type FoodPreference = "vegetarian" | "non_vegetarian" | "jain" | "eggetarian";
+
+export type MealPlanDuration = "daily" | "weekly" | "15_day" | "monthly" | "custom";
+
+export type MessStatus = LibraryStatus;
+
+export type MessWeekDay = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
+
+export interface MessLocation {
+  formattedAddress?: string;
+  address: string;
+  city: string;
+  state: string;
+  country?: string;
+  pincode?: string;
+  zipCode?: string;
+  latitude?: number;
+  longitude?: number;
+  googlePlaceId?: string;
+  coordinates: GeoLocation;
+}
+
+export interface MessContact {
+  phone?: string;
+  email?: string;
+  website?: string;
+}
+
+export interface MessPricing {
+  startingMealPrice: number;
+  currency: string;
+}
+
+export interface MessOperatingHours {
+  openingTime: string;
+  closingTime: string;
+  openDays: string[];
+  is24x7: boolean;
+}
+
+export interface MessMealPlan {
+  id: string;
+  name: string;
+  description?: string;
+  duration: MealPlanDuration;
+  includedMeals: MealType[];
+  price: number;
+  deliveryIncluded: boolean;
+  pauseAllowed: boolean;
+  isActive: boolean;
+}
+
+export interface MessMenuItem {
+  name: string;
+  description?: string;
+}
+
+export interface MessDayMenu {
+  day: MessWeekDay;
+  breakfast: MessMenuItem[];
+  lunch: MessMenuItem[];
+  dinner: MessMenuItem[];
+}
+
+export interface MessProvider {
+  id: string;
+  ownerId: string;
+  name: string;
+  slug: string;
+  description: string;
+  providerType: MessProviderType;
+  location: MessLocation;
+  area: string;
+  contact: MessContact;
+  foodPreferences: (FoodPreference | string)[];
+  mealTypes: (MealType | string)[];
+  pricing: MessPricing;
+  deliveryAvailable: boolean;
+  pickupAvailable: boolean;
+  subscriptionAvailable: boolean;
+  deliveryRadiusKm?: number;
+  operatingHours: MessOperatingHours;
+  images: string[];
+  mealPlans: MessMealPlan[];
+  weeklyMenu: MessDayMenu[];
+  isVerified: boolean;
+  status: MessStatus;
+  submittedAt?: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  rejectionReason?: string;
+  moderationNotes?: string;
+  avgRating: number;
+  reviewsCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type MessSortBy = "recommended" | "price_asc" | "price_desc" | "rating" | "newest";
+
+export interface MessFilters {
+  search?: string;
+  area?: string;
+  providerType?: MessProviderType;
+  foodPreference?: FoodPreference;
+  mealType?: MealType;
+  minPrice?: number;
+  maxPrice?: number;
+  delivery?: boolean;
+  pickup?: boolean;
+  subscription?: boolean;
+  page?: number;
+  limit?: number;
+  sortBy?: MessSortBy;
+}
+
+export interface PaginatedMesses {
+  items: MessProvider[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export type EnquiryTargetType = "ACCOMMODATION" | "LIBRARY" | "MESS";
 export type EnquiryStatus = "NEW" | "CONTACTED" | "VISIT_SCHEDULED" | "CONVERTED" | "CLOSED";
 
 export interface EnquiryTargetDetails {
@@ -312,7 +453,16 @@ export type LeadStatus =
   | "CONVERTED"
   | "CANCELLED";
 
-export type LeadTargetType = "ACCOMMODATION" | "LIBRARY" | "COACHING" | "CAFE" | "PG" | "HOSTEL";
+export type LeadTargetType =
+  | "ACCOMMODATION"
+  | "LIBRARY"
+  | "MESS"
+  | "TIFFIN"
+  | "LAUNDRY"
+  | "COACHING"
+  | "CAFE"
+  | "PG"
+  | "HOSTEL";
 
 export type LeadSource = "DIRECT_ENQUIRY" | "VISIT_REQUEST" | "WHATSAPP_CLICK" | "CALL_CLICK";
 

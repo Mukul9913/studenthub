@@ -137,7 +137,7 @@ export const libraryQuerySchema = z.object({
  * Enquiry Schemas
  */
 export const createEnquirySchema = z.object({
-  targetType: z.enum(["ACCOMMODATION", "LIBRARY"]),
+  targetType: z.enum(["ACCOMMODATION", "LIBRARY", "MESS"]),
   targetId: z.string().min(1, "Target ID is required"),
   message: z.string().min(10, "Message must be at least 10 characters").max(1000),
 });
@@ -384,7 +384,7 @@ export const purchaseLeadPackageSchema = z.object({
 
 export const featureListingSchema = z.object({
   listingId: z.string().min(1, "Listing ID is required"),
-  targetType: z.enum(["ACCOMMODATION", "LIBRARY"]),
+  targetType: z.enum(["ACCOMMODATION", "LIBRARY", "MESS"]),
   durationDays: z.number().int().positive().default(7),
   placementScope: z.enum(["SEARCH", "CATEGORY", "HOMEPAGE"]).default("SEARCH"),
 });
@@ -402,7 +402,7 @@ export const reviewVerificationSchema = z.object({
 });
 
 export const createReviewSchema = z.object({
-  targetType: z.enum(["ACCOMMODATION", "LIBRARY"]),
+  targetType: z.enum(["ACCOMMODATION", "LIBRARY", "MESS"]),
   targetId: z.string().min(1, "Target listing ID is required"),
   rating: z.number().min(1).max(5),
   title: z.string().min(3, "Title must be at least 3 characters").max(100),

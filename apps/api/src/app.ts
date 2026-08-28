@@ -17,6 +17,7 @@ import {
   authRouter,
   accommodationRouter,
   libraryRouter,
+  messRouter,
   enquiryRouter,
   leadRouter,
   adminRouter,
@@ -130,6 +131,7 @@ export function createApp(): Express {
   app.use("/api/auth", authRouter);
   app.use("/api/accommodations", accommodationRouter);
   app.use("/api/libraries", libraryRouter);
+  app.use("/api/mess", messRouter);
   app.use("/api/enquiries", enquiryRouter);
   app.use("/api/leads", leadRouter);
   app.use("/api/admin", adminRouter);

@@ -93,7 +93,7 @@ export function AdminDashboard() {
                 <span className="text-xs font-semibold uppercase tracking-wide">
                   Platform Users
                 </span>
-                <Users className="h-4 w-4 text-purple-600" />
+                <Users className="h-4 w-4 text-primary" />
               </div>
               <p className="text-3xl font-bold tracking-tight text-foreground">
                 {data.users.total}
@@ -154,7 +154,7 @@ export function AdminDashboard() {
             <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div className="flex items-center gap-2">
-                  <UserCheck className="h-5 w-5 text-purple-600" />
+                  <UserCheck className="h-5 w-5 text-primary" />
                   <h3 className="font-bold text-foreground">Recent Registrations</h3>
                 </div>
                 <Button size="sm" variant="ghost" className="text-xs gap-1" asChild>
@@ -188,7 +188,7 @@ export function AdminDashboard() {
                             u.role === "owner"
                               ? "bg-amber-500/10 text-amber-600"
                               : u.role === "admin"
-                                ? "bg-purple-500/10 text-purple-600"
+                                ? "bg-primary/10 text-primary"
                                 : "bg-blue-500/10 text-blue-600"
                           }
                         >
@@ -282,17 +282,17 @@ export function AdminDashboard() {
 
             <Link
               to="/admin/owners"
-              className="flex items-center justify-between rounded-2xl border border-purple-500/30 bg-purple-500/5 p-4 hover:border-purple-500/60 transition group"
+              className="flex items-center justify-between rounded-2xl border border-primary/30 bg-primary/5 p-4 hover:border-primary/60 transition group"
             >
               <div>
-                <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide">
+                <p className="text-xs font-semibold text-primary uppercase tracking-wide">
                   Owners
                 </p>
                 <p className="font-bold text-foreground text-sm mt-0.5">
                   Business Owners ({data.users.owners})
                 </p>
               </div>
-              <Briefcase className="h-4 w-4 text-purple-600 group-hover:translate-x-1 transition" />
+              <Briefcase className="h-4 w-4 text-primary group-hover:translate-x-1 transition" />
             </Link>
 
             <Link

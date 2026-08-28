@@ -4,9 +4,10 @@ import type { IEnquiry } from "../models/enquiry.model.js";
 import type { EnquiryRepository } from "../repositories/enquiry.repository.js";
 import type { PropertyRepository } from "../repositories/property.repository.js";
 import type { LibraryRepository } from "../repositories/library.repository.js";
+import type { MessRepository } from "../repositories/mess.repository.js";
 
 export interface CreateEnquiryPayload {
-  targetType: "ACCOMMODATION" | "LIBRARY";
+  targetType: "ACCOMMODATION" | "LIBRARY" | "MESS";
   targetId: string;
   message: string;
 }
@@ -24,6 +25,7 @@ export class EnquiryService {
     private enquiryRepository: EnquiryRepository,
     private propertyRepository: PropertyRepository,
     private libraryRepository: LibraryRepository,
+    private messRepository: MessRepository,
   ) {}
 
   async createEnquiry(userId: string, payload: CreateEnquiryPayload): Promise<IEnquiry> {
@@ -53,6 +55,17 @@ export class EnquiryService {
               (library.ownerId as unknown as { id?: string }).id ||
               String(library.ownerId)
             : String(library.ownerId || "");
+      }
+    } else if (targetType === "MESS") {
+      const mess = await this.messRepository.findById(targetId);
+      if (mess) {
+        targetExists = true;
+        ownerIdStr =
+          typeof mess.ownerId === "object" && mess.ownerId !== null
+            ? (mess.ownerId as unknown as { _id?: { toString(): string } })._id?.toString() ||
+              (mess.ownerId as unknown as { id?: string }).id ||
+              String(mess.ownerId)
+            : String(mess.ownerId || "");
       }
     } else {
       throw new BadRequestError("Unsupported target type", "INVALID_TARGET_TYPE");
@@ -131,6 +144,17 @@ export class EnquiryService {
               link: `/libraries/${lib.id || lib._id}`,
             };
           }
+        } else if (item.targetType === "MESS") {
+          const mess = await this.messRepository.findById(item.targetId?.toString());
+          if (mess) {
+            targetDetails = {
+              id: mess.id || mess._id.toString(),
+              title: mess.name,
+              area: mess.area,
+              image: mess.images?.[0] || "",
+              link: `/mess/${mess.slug}`,
+            };
+          }
         }
 
         const ownerObj =
@@ -195,6 +219,17 @@ export class EnquiryService {
               link: `/libraries/${lib.id || lib._id}`,
             };
           }
+        } else if (item.targetType === "MESS") {
+          const mess = await this.messRepository.findById(item.targetId?.toString());
+          if (mess) {
+            targetDetails = {
+              id: mess.id || mess._id.toString(),
+              title: mess.name,
+              area: mess.area,
+              image: mess.images?.[0] || "",
+              link: `/mess/${mess.slug}`,
+            };
+          }
         }
 
         const userObj =
@@ -254,6 +289,17 @@ export class EnquiryService {
               area: lib.area,
               image: lib.images?.[0] || "",
               link: `/libraries/${lib.id || lib._id}`,
+            };
+          }
+        } else if (item.targetType === "MESS") {
+          const mess = await this.messRepository.findById(item.targetId?.toString());
+          if (mess) {
+            targetDetails = {
+              id: mess.id || mess._id.toString(),
+              title: mess.name,
+              area: mess.area,
+              image: mess.images?.[0] || "",
+              link: `/mess/${mess.slug}`,
             };
           }
         }

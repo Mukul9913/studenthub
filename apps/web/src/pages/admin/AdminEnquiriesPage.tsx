@@ -110,7 +110,7 @@ export function AdminEnquiriesPage() {
       <div className="space-y-6">
         {/* Top Action Header */}
         <div className="flex items-center justify-between">
-          <Badge variant="outline" className="gap-1 bg-indigo-50 text-indigo-700 border-indigo-200">
+          <Badge variant="outline" className="gap-1 bg-primary/10 text-primary border-primary/20">
             <MessageSquare className="h-3.5 w-3.5" /> Platform Lead Telemetry
           </Badge>
           <Button
@@ -135,13 +135,13 @@ export function AdminEnquiriesPage() {
               <span className="text-xs font-medium text-blue-600">Today's Leads</span>
               <p className="text-2xl font-bold text-blue-700 mt-1">{analytics.todayLeads}</p>
             </div>
-            <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 shadow-sm">
-              <span className="text-xs font-medium text-indigo-600">Weekly Leads</span>
-              <p className="text-2xl font-bold text-indigo-700 mt-1">{analytics.weeklyLeads}</p>
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 shadow-sm">
+              <span className="text-xs font-medium text-primary">Weekly Leads</span>
+              <p className="text-2xl font-bold text-foreground mt-1">{analytics.weeklyLeads}</p>
             </div>
-            <div className="rounded-xl border border-purple-100 bg-purple-50/50 p-4 shadow-sm">
-              <span className="text-xs font-medium text-purple-600">Monthly Leads</span>
-              <p className="text-2xl font-bold text-purple-700 mt-1">{analytics.monthlyLeads}</p>
+            <div className="rounded-xl border border-primary/20 bg-primary/10 p-4 shadow-sm">
+              <span className="text-xs font-medium text-primary">Monthly Leads</span>
+              <p className="text-2xl font-bold text-foreground mt-1">{analytics.monthlyLeads}</p>
             </div>
             <div className="rounded-xl border border-emerald-200 bg-emerald-600 text-white p-4 shadow-sm">
               <span className="text-xs font-medium text-emerald-100 flex items-center gap-1">
@@ -158,7 +158,7 @@ export function AdminEnquiriesPage() {
             {/* Top Listings */}
             <div className="rounded-xl border border-border bg-card p-4 shadow-sm space-y-3">
               <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-indigo-600" /> Top Performing Listings
+                <Building2 className="h-4 w-4 text-primary" /> Top Performing Listings
               </h4>
               <div className="space-y-2">
                 {analytics.topListings.map((item, idx) => (
@@ -169,7 +169,7 @@ export function AdminEnquiriesPage() {
                     <span className="font-medium text-foreground truncate">
                       {idx + 1}. {item.title}
                     </span>
-                    <Badge variant="secondary" className="font-semibold text-indigo-700">
+                    <Badge variant="secondary" className="font-semibold text-primary">
                       {item.count} Leads
                     </Badge>
                   </div>
@@ -236,6 +236,14 @@ export function AdminEnquiriesPage() {
               className="text-xs h-8"
             >
               Library
+            </Button>
+            <Button
+              size="sm"
+              variant={selectedType === "MESS" ? "default" : "outline"}
+              onClick={() => setSelectedType("MESS")}
+              className="text-xs h-8"
+            >
+              Mess
             </Button>
           </div>
         </div>
@@ -321,9 +329,9 @@ export function AdminEnquiriesPage() {
                             e.status === "CONVERTED"
                               ? "bg-emerald-100 text-emerald-800 border-emerald-300"
                               : e.status === "ACCEPTED"
-                                ? "bg-indigo-100 text-indigo-800 border-indigo-300"
+                                ? "bg-primary/10 text-primary border-primary/30"
                                 : e.status === "VISITED"
-                                  ? "bg-purple-100 text-purple-800 border-purple-300"
+                                  ? "bg-primary/10 text-primary border-primary/30"
                                   : e.status === "REJECTED" || e.status === "CANCELLED"
                                     ? "bg-red-100 text-red-800 border-red-300"
                                     : "bg-amber-100 text-amber-800 border-amber-300"

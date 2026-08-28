@@ -22,6 +22,13 @@ import { createLibrary } from "../../features/library/services";
 import { uploadAccommodationImages } from "../../features/accommodation/services";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { ApiError } from "../../services/api";
+import { DraggableMapPicker } from "../../components/maps/DraggableMapPicker";
+import {
+  DEFAULT_INDORE_LAT,
+  DEFAULT_INDORE_LNG,
+  buildGeoLocationPayload,
+  patchFromGeocode,
+} from "../../lib/location-helpers";
 
 const STEPS = [
   "Basics",
@@ -65,6 +72,10 @@ interface FormState {
   address: string;
   area: string;
   zipCode: string;
+  latitude: number;
+  longitude: number;
+  googlePlaceId?: string;
+  formattedAddress?: string;
   openingTime: string;
   closingTime: string;
   is24x7: boolean;
@@ -87,6 +98,8 @@ const EMPTY_FORM: FormState = {
   address: "",
   area: "",
   zipCode: "452001",
+  latitude: DEFAULT_INDORE_LAT,
+  longitude: DEFAULT_INDORE_LNG,
   openingTime: "06:00",
   closingTime: "23:00",
   is24x7: false,
@@ -212,12 +225,14 @@ export function CreateLibraryPage() {
       await createLibrary({
         name: form.name.trim(),
         description: form.description.trim(),
-        location: {
-          address: form.address.trim(),
-          city: "indore",
-          state: "Madhya Pradesh",
-          zipCode: form.zipCode.trim() || "452001",
-        },
+        location: buildGeoLocationPayload({
+          address: form.address,
+          zipCode: form.zipCode,
+          latitude: form.latitude,
+          longitude: form.longitude,
+          googlePlaceId: form.googlePlaceId,
+          formattedAddress: form.formattedAddress,
+        }),
         area: form.area,
         contact: {
           phone: form.phone.trim() || undefined,
@@ -332,6 +347,31 @@ export function CreateLibraryPage() {
           <div className="space-y-4 animate-in fade-in duration-200">
             <h2 className="text-lg font-semibold">Location & Address</h2>
 
+            <div>
+              <Label className="mb-1.5 block">Pin Exact Library Location</Label>
+              <DraggableMapPicker
+                initialAddress={form.address}
+                initialCity="Indore"
+                initialLatitude={form.latitude}
+                initialLongitude={form.longitude}
+                onLocationChange={(loc) => {
+                  const patch = patchFromGeocode(loc);
+                  setForm((prev) => ({
+                    ...prev,
+                    ...patch,
+                    zipCode: patch.zipCode || prev.zipCode,
+                    area: patch.area || prev.area,
+                  }));
+                  setErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.address;
+                    if (patch.area) delete next.area;
+                    return next;
+                  });
+                }}
+              />
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="lib-area">Area / Locality in Indore *</Label>
@@ -371,6 +411,9 @@ export function CreateLibraryPage() {
                 placeholder="Building Name, Plot No., Landmark, Street Road, Indore"
               />
               {errors.address && <p className="text-xs text-destructive">{errors.address}</p>}
+              <p className="text-xs text-muted-foreground">
+                Auto-filled from map pin — you can still edit the street text.
+              </p>
             </div>
           </div>
         )}

@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { HomePage } from "@/pages/HomePage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
+import { ComingSoonState } from "@/components/common/ComingSoonState";
 
 import { AccommodationsPage } from "@/pages/accommodation/AccommodationsPage";
 import { AccommodationDetailsPage } from "@/pages/accommodation/AccommodationDetailsPage";
@@ -9,12 +10,17 @@ import { AccommodationDetailsPage } from "@/pages/accommodation/AccommodationDet
 import { LibrariesPage } from "@/pages/library/LibrariesPage";
 import { LibraryDetailsPage } from "@/pages/library/LibraryDetailsPage";
 
+import { MessesPage } from "@/pages/mess/MessesPage";
+import { MessDetailsPage } from "@/pages/mess/MessDetailsPage";
+
 import { OwnerDashboard } from "@/pages/owner/OwnerDashboard";
 import { MyListingsPage } from "@/pages/owner/MyListingsPage";
 import { CreateAccommodationPage } from "@/pages/owner/CreateAccommodationPage";
 import { EditAccommodationPage } from "@/pages/owner/EditAccommodationPage";
 import { CreateLibraryPage } from "@/pages/owner/CreateLibraryPage";
 import { EditLibraryPage } from "@/pages/owner/EditLibraryPage";
+import { CreateMessPage } from "@/pages/owner/CreateMessPage";
+import { EditMessPage } from "@/pages/owner/EditMessPage";
 
 import { ProfilePage } from "@/pages/dashboard/ProfilePage";
 import { SettingsPage } from "@/pages/dashboard/SettingsPage";
@@ -49,6 +55,9 @@ function NewListingDispatcher() {
   if (user?.ownerType === "library") {
     return <CreateLibraryPage />;
   }
+  if (user?.ownerType === "mess") {
+    return <CreateMessPage />;
+  }
   return <CreateAccommodationPage />;
 }
 
@@ -70,6 +79,9 @@ export function AppRouter() {
         <Route path="libraries" element={<LibrariesPage />} />
         <Route path="libraries/:id" element={<LibraryDetailsPage />} />
         <Route path="library/:id" element={<LibraryDetailsPage />} />
+
+        <Route path="mess" element={<MessesPage />} />
+        <Route path="mess/:slug" element={<MessDetailsPage />} />
 
         <Route
           path="dashboard/profile"
@@ -217,6 +229,22 @@ export function AppRouter() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="owner/mess/new"
+          element={
+            <ProtectedRoute allowedRoles={["owner"]}>
+              <CreateMessPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="owner/mess/:id/edit"
+          element={
+            <ProtectedRoute allowedRoles={["owner"]}>
+              <EditMessPage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="admin/dashboard"
@@ -300,8 +328,15 @@ export function AppRouter() {
         />
 
         {/* Catch all for "Coming Soon" routes */}
-        <Route path="mess" element={<NotFoundPage />} />
-        <Route path="services" element={<NotFoundPage />} />
+        <Route
+          path="services"
+          element={
+            <ComingSoonState
+              title="Local Services"
+              description="Essential local services discovery is coming soon."
+            />
+          }
+        />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

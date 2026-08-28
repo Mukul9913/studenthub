@@ -22,12 +22,9 @@ import type {
 
 export class MonetizationService {
   /**
-   * Seed default plans if none exist in DB
+   * Seed default plans / services / packages if missing (idempotent; safe under concurrency).
    */
   async ensureDefaultPlans(): Promise<void> {
-    const count = await PlanModel.countDocuments();
-    if (count > 0) return;
-
     const defaultPlans = [
       {
         name: "FREE",
@@ -134,7 +131,16 @@ export class MonetizationService {
       },
     ];
 
-    await PlanModel.insertMany(defaultPlans);
+    await Promise.all(
+      defaultPlans.map(async (plan) => {
+        try {
+          await PlanModel.updateOne({ code: plan.code }, { $setOnInsert: plan }, { upsert: true });
+        } catch (err: unknown) {
+          // Concurrent upsert race — document already exists
+          if ((err as { code?: number })?.code !== 11000) throw err;
+        }
+      }),
+    );
 
     const defaultServices = [
       {
@@ -166,7 +172,19 @@ export class MonetizationService {
       },
     ];
 
-    await MarketingServiceModel.insertMany(defaultServices);
+    await Promise.all(
+      defaultServices.map(async (service) => {
+        try {
+          await MarketingServiceModel.updateOne(
+            { code: service.code },
+            { $setOnInsert: service },
+            { upsert: true },
+          );
+        } catch (err: unknown) {
+          if ((err as { code?: number })?.code !== 11000) throw err;
+        }
+      }),
+    );
 
     const defaultLeadPackages = [
       {
@@ -199,7 +217,19 @@ export class MonetizationService {
       },
     ];
 
-    await LeadPackageModel.insertMany(defaultLeadPackages);
+    await Promise.all(
+      defaultLeadPackages.map(async (pkg) => {
+        try {
+          await LeadPackageModel.updateOne(
+            { creditsCount: pkg.creditsCount },
+            { $setOnInsert: pkg },
+            { upsert: true },
+          );
+        } catch (err: unknown) {
+          if ((err as { code?: number })?.code !== 11000) throw err;
+        }
+      }),
+    );
   }
 
   // --- PLANS ---

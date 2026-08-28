@@ -141,7 +141,7 @@ export function OwnerReviewAnalyticsPage() {
             <CardDescription className="text-xs font-semibold uppercase">
               Reviews Replied
             </CardDescription>
-            <CardTitle className="text-3xl font-bold text-purple-600">
+            <CardTitle className="text-3xl font-bold text-primary">
               {reviews.filter((r) => r.reply).length} / {reviews.length}
             </CardTitle>
           </CardHeader>

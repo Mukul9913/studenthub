@@ -55,14 +55,14 @@ export function HomeSection({
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => scroll("left")}
-              className="hidden md:flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              className="hidden md:flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
               aria-label="Scroll left"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={() => scroll("right")}
-              className="hidden md:flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              className="hidden md:flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
               aria-label="Scroll right"
             >
               <ChevronRight className="h-4 w-4" />
